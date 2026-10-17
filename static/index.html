@@ -74,7 +74,7 @@ button:disabled{opacity:.43;cursor:not-allowed;transform:none!important}
 <script>
 const MODES=[
  {id:"insult",emoji:"🔥"}, {id:"quest",emoji:"🎲"}, {id:"puzzle",emoji:"🧠"},
- {id:"photo",emoji:"📸"}, {id:"mystery",emoji:"📡"}, {id:"horror",emoji:"👁️"},
+ {id:"photo",emoji:"📸"}, {id:"mystery",emoji:"📡"}, {id:"horror",emoji:"👁️"}, {id:"psychhorror",emoji:"🕳️"},
  {id:"certificate",emoji:"🏆"}, {id:"fpv",emoji:"🚁"}, {id:"fake",emoji:"🧾"},
  {id:"psyops",emoji:"🗂️"}, {id:"patch",emoji:"🪐"}, {id:"prophecy",emoji:"🔮"},
  {id:"complaint",emoji:"⚖️"}, {id:"future",emoji:"📼"},
@@ -86,8 +86,8 @@ const TXT={
   pick:"Choose your chaos",preview:"The evidence",empty:"Select a button. Create a problem.",
   printer:"Windows receipt printer (USB or network)",refresh:"↻ Find printers",padding:"Bottom margin before cut",cut:"Auto-cut",
   gen:"↻ SUMMON CHAOS",print:"🖨 PRINT IT",hint:"Print through a Windows-installed USB or network receipt printer.",
-  name:["ROAST ME","CHAOS QUEST","BRAIN DAMAGE","THERMAL PHOTO","HAUNTED SIGNAL","PURE HORROR","FAKE CERTIFICATE","FPV MISSION","FAKE RECEIPT","PSYOPS","REALITY PATCH NOTES","PROPHECY","COSMIC COMPLAINTS","FUTURE TRANSMISSION","PARANORMAL BUREAU","THERMAL BINGO","CHAOS ROULETTE"],
-  desc:["Your self-esteem wasn't using those hit points.","Receive an unsolicited quest.","Pocket puzzles; solutions on demand.","Convert pictures into edible-looking pixels.","Disturbing transmissions from impossible devices.","Very short stories. Very wrong endings.","Award yourself an absurd qualification.","A fresh little flying challenge.","Buy something from a shop that shouldn't exist.","A bureaucratic memo that knows too much.","Patch notes for a defective universe.","Uncomfortably specific, deeply unreliable predictions.","File an official grievance against existence.","Receive tomorrow's message several decades early.","Dead-serious paranormal reports with very stupid explanations.","5×5 printable bingo: IT, customers, home or cosmic disasters.","No choosing. Just pure unpredictable nonsense."],
+  name:["ROAST ME","CHAOS QUEST","BRAIN DAMAGE","THERMAL PHOTO","HAUNTED SIGNAL","PURE HORROR","PSYCHO HORROR","FAKE CERTIFICATE","FPV MISSION","FAKE RECEIPT","PSYOPS","REALITY PATCH NOTES","PROPHECY","COSMIC COMPLAINTS","FUTURE TRANSMISSION","PARANORMAL BUREAU","THERMAL BINGO","CHAOS ROULETTE"],
+  desc:["Your self-esteem wasn't using those hit points.","Receive an unsolicited quest.","Pocket puzzles; solutions on demand.","Convert pictures into edible-looking pixels.","Disturbing transmissions from impossible devices.","Very short stories. Very wrong endings.","Two sentences to make your own memories feel untrustworthy.","Award yourself an absurd qualification.","A fresh little flying challenge.","Buy something from a shop that shouldn't exist.","A bureaucratic memo that knows too much.","Patch notes for a defective universe.","Uncomfortably specific, deeply unreliable predictions.","File an official grievance against existence.","Receive tomorrow's message several decades early.","Dead-serious paranormal reports with very stupid explanations.","5×5 printable bingo: IT, customers, home or cosmic disasters.","No choosing. Just pure unpredictable nonsense."],
   choose:"Choose",levels:"Damage level",difficulty:"Difficulty",puzzle:"Puzzle type",
   bingoTheme:"Bingo theme",bingoThemes:["IT repair chaos","Customers from hell","Household nonsense","Cosmic accidents"],
   nameInput:"Name on the certificate (optional)",nameHolder:"THE BEARER",craft:"Aircraft",
@@ -108,8 +108,8 @@ const TXT={
   pick:"Válaszd ki a káoszt",preview:"A bizonyíték",empty:"Nyomj egy gombot. Generálj egy problémát.",
   printer:"Windows blokknyomtató (USB vagy hálózat)",refresh:"↻ Nyomtatók keresése",padding:"Alsó ráhagyás vágás előtt",cut:"Automatikus vágás",
   gen:"↻ KÁOSZT IDE!",print:"🖨 NYOMTASD!",hint:"Nyomtatás Windowsban telepített USB-s vagy hálózati blokknyomtatóra.",
-  name:["ALÁZZ MEG!","KÁOSZKÜLDETÉS","AGYTORNA","HŐNYOMAT","KÍSÉRTETJEL","TISZTA HORROR","KAMU OKLEVÉL","FPV KÜLDETÉS","KAMU BLOKK","PSYOPS","VALÓSÁGFRISSÍTÉS","JÓSLAT","KOZMIKUS PANASZOK","ÜZENET A JÖVŐBŐL","PARANORMÁLIS IRODA","THERMAL BINGÓ","KÁOSZROULETT"],
-  desc:["A maradék önbecsülésedet is bedaráljuk.","Teljesen értelmetlen mellékküldetés.","Zsebméretű rejtvények külön megfejtéssel.","Csináljunk egy fotóból pixeles műalkotást.","Üzenetek olyan eszközökről, amik nem is léteznek.","Pár sor. Aztán nem fogsz jól aludni.","Kapj hivatalosan értéktelen címet.","Egy repülés, egy kihívás.","Vásárolj egy lehetetlen univerzumban.","Hivatalos papír, ami túlságosan sokat tud rólad.","A hibás univerzum legfrissebb változásai.","Kellemetlenül konkrét, megbízhatatlan jóslatok.","Tegyél hivatalos panaszt a létezés ellen.","Évtizedekkel korábban kézbesített üzenet.","Halálosan komoly paranormális jelentések abszurd megfejtéssel.","5×5-ös nyomtatható bingó: szerviz, ügyfelek, otthon vagy kozmosz.","Vakon belenyúlsz a káoszba. Bármi történhet."],
+  name:["ALÁZZ MEG!","KÁOSZKÜLDETÉS","AGYTORNA","HŐNYOMAT","KÍSÉRTETJEL","TISZTA HORROR","PSZICHOHORROR","KAMU OKLEVÉL","FPV KÜLDETÉS","KAMU BLOKK","PSYOPS","VALÓSÁGFRISSÍTÉS","JÓSLAT","KOZMIKUS PANASZOK","ÜZENET A JÖVŐBŐL","PARANORMÁLIS IRODA","THERMAL BINGÓ","KÁOSZROULETT"],
+  desc:["A maradék önbecsülésedet is bedaráljuk.","Teljesen értelmetlen mellékküldetés.","Zsebméretű rejtvények külön megfejtéssel.","Csináljunk egy fotóból pixeles műalkotást.","Üzenetek olyan eszközökről, amik nem is léteznek.","Pár sor. Aztán nem fogsz jól aludni.","Két mondat, amitől már a saját emlékeidben sem bízol.","Kapj hivatalosan értéktelen címet.","Egy repülés, egy kihívás.","Vásárolj egy lehetetlen univerzumban.","Hivatalos papír, ami túlságosan sokat tud rólad.","A hibás univerzum legfrissebb változásai.","Kellemetlenül konkrét, megbízhatatlan jóslatok.","Tegyél hivatalos panaszt a létezés ellen.","Évtizedekkel korábban kézbesített üzenet.","Halálosan komoly paranormális jelentések abszurd megfejtéssel.","5×5-ös nyomtatható bingó: szerviz, ügyfelek, otthon vagy kozmosz.","Vakon belenyúlsz a káoszba. Bármi történhet."],
   choose:"Válassz",levels:"Lelki sérülés mértéke",difficulty:"Nehézség",puzzle:"Rejtvény típusa",
   bingoTheme:"Bingó témája",bingoThemes:["Szervizkáosz","Ügyfelek pokla","Otthoni őrület","Kozmikus anomáliák"],
   nameInput:"Név az oklevélre (opcionális)",nameHolder:"AZ OKLEVÉL TULAJDONOSA",craft:"Gép",
@@ -200,7 +200,7 @@ function fileData(file){
 }
 async function generate(kind=mode,payload=null){
  const selectedLang=$("lang").value;
- if(kind==="roulette")kind=["insult","quest","puzzle","mystery","horror","certificate","fpv","fake","psyops","patch","prophecy","complaint","future","paranormal","bingo"][Math.floor(Math.random()*15)];
+ if(kind==="roulette")kind=["insult","quest","puzzle","mystery","horror","psychhorror","certificate","fpv","fake","psyops","patch","prophecy","complaint","future","paranormal","bingo"][Math.floor(Math.random()*16)];
  $("generate").disabled=true;$("print").disabled=true;$("answer").style.display="none";tell(t().generating);
  try{
   const data=payload?{...payload}:{};
