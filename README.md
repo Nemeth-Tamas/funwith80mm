@@ -413,7 +413,7 @@ accountant.** The slips are supplementary aids, not substitute legal
 documents. All templates run offline and require a manual print action.
 
 Technical checks:
-\`\`\`powershell
+```powershell
 .\.venv\Scripts\python.exe -m unittest discover -s tests -v
 node --test tests/test_camera_ui.cjs tests/test_utility_ui.cjs
-\`\`\`
+```
