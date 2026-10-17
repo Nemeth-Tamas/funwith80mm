@@ -371,16 +371,16 @@ Nothing prints unless the operator presses Print.
     - **ELŐLEG** is an advance against the price. It is **not by default
       non-refundable**. Refund/settlement follows the actual agreement
       and applicable law.
-    - **FOGLALÓ** (Ptk. 6:185) is only available after the operator
-      confirms a **separately and clearly agreed** earnest-money term.
-      Performance credits it to the price; if non-performance is the
-      buyer's responsibility, they forfeit it; if the seller is
+    - **FOGLALÓ** (Ptk. 6:185) requires the parties' **express,
+      unambiguous contractual agreement** that the payment reinforces
+      their commitment. Performance credits it to the price; if failure
+      is the buyer's responsibility, they forfeit it; if the seller is
       responsible, the seller returns *double*; if neither or both
       parties are responsible, it returns. Courts may reduce excessive
       amounts. Consumer statutory remedies and withdrawal rights cannot
       simply be waived by printing a non-refund clause. The app
       intentionally **does not** offer a blanket 'non-refundable deposit'.
-      Attach an actual agreed and signed, durable contract.
+      Sign the two contract copies and preserve a durable record.
 
   **Very important for accounting:** The thermal Parts Payment slip is
   **not an advance invoice, VAT invoice, accounting receipt or fiscal
