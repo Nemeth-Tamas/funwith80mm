@@ -323,3 +323,97 @@ tests cover fake USB tracks, countdown cancellation, late camera permissions,
 disconnects, lighting, retakes, unload cleanup and deliberate printing. CI runs
 both on pushes to master and pull requests. A real photo and paper check still
 need an operator at the booth.
+
+
+## Thermal Toolbox: useful paper (October 2026)
+
+The normal **start.bat** opens the original Thermal Chaos app, now with
+six *additional, printable utility modes* in English and Hungarian:
+**QR Factory**, **Pocket Checklists**, **Quick Note**, **Cheat Sheet**,
+**Customer Rights**, and **Parts Payment**. Every mode uses the original
+cached-preview-then-manual-print flow (576-pixel black/white ESC/POS,
+12/20/30 mm bottom feed, installed Windows printer queue and cutter).
+Nothing prints unless the operator presses Print.
+
+- **QR Factory:** website links (http/https), Unicode text, properly
+  escaped Wi-Fi QR for WPA/WPA2/WPA3, WEP or open networks (including
+  hidden networks), and compact MECARD contact details. Square QR
+  images retain a white quiet zone. Scan-test on a phone, particularly
+  for lengthy codes. QR contents can include sensitive Wi-Fi passwords:
+  distribute only to intended recipients.
+- **Pocket Checklists:** custom heading and 1–28 newline-separated items
+  printed with *real empty squares*, handy for repair checklists and
+  shopping. Bullets or leading numbers are optional.
+- **Quick Note:** customizable large reminder and optional timestamp.
+- **Cheat Sheet:** offline mini-references for IPv4 subnetting, Windows,
+  Linux, MikroTik, Python, C# and electronics, plus custom references.
+- **Customer Rights / Vásárlói jogok:** a Hungarian-only supplementary
+  statutory information slip. Enter seller, description, gross HUF price,
+  sale type and sales channel. For a **new product actually within the
+  mandatory-warranty product classes**, it reports two years from
+  10,000–250,000 Ft, three years above 250,000 Ft. At **100,000 Ft
+  or less**, a separate warranty certificate may be omitted, but
+  *prescribed information must still be supplied in a durable readable
+  format*. Above 100,000 Ft, a compliant warranty certificate is
+  required. Also summarizes liability for defects (kellékszavatosság)
+  and that the usual 14-day no-reason withdrawal right is **not a general
+  entitlement for an ordinary in-store purchase**. This is **not**
+  a complete statutory disclosure package, warranty certificate,
+  invoice, receipt, ÁSZF or a legal opinion. The operator **must
+  verify product category and customer status**; do not assume that
+  all replacement parts are listed products. Supply statutory warranty
+  information in an appropriately durable form separately; ordinary
+  thermal paper may fade.
+- **Parts Payment / Alkatrész előleg:** personalized order and payment
+  acknowledgment (seller, customer, exact part, optional job reference,
+  overall price, amount received, balance, expected arrival and signature
+  lines). The operator must choose the **legal nature** of the payment:
+    - **ELŐLEG** is an advance against the price. It is **not by default
+      non-refundable**. Refund/settlement follows the actual agreement
+      and applicable law.
+    - **FOGLALÓ** (Ptk. 6:185) is only available after the operator
+      confirms a **separately and clearly agreed** earnest-money term.
+      Performance credits it to the price; if non-performance is the
+      buyer's responsibility, they forfeit it; if the seller is
+      responsible, the seller returns *double*; if neither or both
+      parties are responsible, it returns. Courts may reduce excessive
+      amounts. Consumer statutory remedies and withdrawal rights cannot
+      simply be waived by printing a non-refund clause. The app
+      intentionally **does not** offer a blanket 'non-refundable deposit'.
+      Attach an actual agreed and signed, durable contract.
+
+  **Very important for accounting:** The thermal Parts Payment slip is
+  **not an advance invoice, VAT invoice, accounting receipt or fiscal
+  cash-register receipt**. Issue the applicable tax documents separately,
+  e.g. through the normal Billingo/invoicing setup and fiscal register.
+  Do not represent this document alone as proof of all legal terms.
+
+### Primary Hungarian legal sources reviewed
+
+- [151/2003. (IX. 22.) Korm. rendelet](https://njt.jog.gov.hu/jogszabaly/2003-151-20-22):
+  mandatory warranty periods, threshold for a separate warranty
+  certificate (2. §, 3/A. §).
+- [10/2024. (VI. 28.) IM rendelet](https://njt.jog.gov.hu/jogszabaly/2024-10-20-06):
+  the enumerated product groups for mandatory warranties. It is the
+  **classification of the product**, not merely its price, that controls.
+- [2013. évi V. törvény, Ptk.](https://njt.jog.gov.hu/jogszabaly/2013-5-00-00):
+  especially 6:163. § (kellékszavatosság), 6:185. § (foglaló).
+- [45/2014. (II. 26.) Korm. rendelet](https://njt.jog.gov.hu/jogszabaly/2014-45-20-22):
+  distance/off-premises withdrawal rules and exceptions (20. §, 29. §);
+  merely ordering an otherwise standard item for a customer is **not
+  automatically a made-to-order customization exemption**.
+- [2007. évi CXXVII. törvény (Áfa tv.)](https://njt.jog.gov.hu/jogszabaly/2007-127-00-00):
+  VAT/advance billing obligations. Verify the specific receipt/invoice
+  rules with the accountant.
+
+**Before using the customer-rights or foglaló text as a standard
+Cellnet contractual clause, have the exact setup checked by a qualified
+Hungarian consumer-law advisor and the tax-document workflow by the
+accountant.** The slips are supplementary aids, not substitute legal
+documents. All templates run offline and require a manual print action.
+
+Technical checks:
+\`\`\`powershell
+.\.venv\Scripts\python.exe -m unittest discover -s tests -v
+node --test tests/test_camera_ui.cjs tests/test_utility_ui.cjs
+\`\`\`
