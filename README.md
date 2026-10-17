@@ -90,3 +90,31 @@ tests invalid content, checks preservation of the original lists, and verifies
 the new puzzles with arithmetic, exhaustive small logic models and simulated
 solution steps. These tests run without a printer; physical Windows printing
 still needs a connected receipt printer.
+
+## The five new chaos buttons
+
+Five new bilingual modes are wired into the existing preview and RAW ESC/POS printer pipeline:
+
+| Button | English | Magyar | Style |
+| --- | ---: | ---: | --- |
+| PSYOPS | 30 | 30 | Fictional cognitive audits, contradictory files and unsettling bureaucratic notices |
+| Reality Patch Notes / Valóságfrissítés | 30 | 30 | Bug fixes and release notes for reality |
+| Prophecy / Jóslat | 30 | 30 | Uncomfortably precise or ridiculous predictions |
+| Cosmic Complaints / Kozmikus Panaszok | 30 | 30 | Formal complaints and absurd official decisions |
+| Future Transmission / Üzenet a jövőből | 30 | 30 | Lost messages, future service tickets and temporal mishaps |
+| **New authored entries** | **150** | **150** | **300 total** |
+
+The curated packs are in `extra_modes/en.json` and `extra_modes/hu.json`,
+loaded and validated by `extra_library.py`. They are *additional* to the
+original `content.BANK`, so the original expansion's 924 entries per language
+remain unchanged. The whole app now has **1,074 authored entries per language**
+(**2,148 across both languages**), excluding algorithmic puzzle variations and photos.
+
+Use one of the five buttons, select English/Magyar, then **Generate preview** and
+**Print**. Chaos Roulette can also randomly choose any of the five additions.
+No external APIs are required, and no printer transport or bottom margin behavior
+was changed for these modes. Existing Windows USB and network printer queues
+continue to work.
+
+The tests validate and render all 300 new entries through the actual
+576-pixel raster receipt pipeline; run `python -m unittest discover -s tests -v`.
