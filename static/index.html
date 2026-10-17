@@ -94,7 +94,8 @@ const TXT={
   photo:"Choose photo",effect:"Rendering effect",photoNote:"Maximum 6 MB. Tall pictures get scaled down.",
   levelsList:["Gentle","Mean","Nuclear","Existential crisis"],difficultyList:["Easy","Medium","Hard"],
   puzzleList:["Surprise me","Sudoku","Number pattern","Caesar cipher","Riddle"],
-  effects:["Classic dither","Hard black and white","Newsprint","Inverted"],
+  effects:["Classic dither","Hard black and white","Newsprint","Inverted","MOST WANTED poster"],
+  aliasLabel:"Suspect alias (optional)",aliasHint:"Blank = the printer invents a criminal name",
   ready:"READY TO PRINT. MAKE A BAD DECISION.",generating:"SUMMONING THE NONSENSE...",
   noPhoto:"Choose a photo first.",bigPhoto:"Image must be below 6 MB.",
   error:"ERROR: ",done:"The Windows printer queue has received your terrible idea.",
@@ -116,7 +117,8 @@ const TXT={
   photo:"Válassz képet",effect:"Képátalakítás",photoNote:"Legfeljebb 6 MB. A túl magas képet lekicsinyítjük.",
   levelsList:["Szelíd","Gonosz","Nukleáris","Egzisztenciális válság"],difficultyList:["Könnyű","Közepes","Nehéz"],
   puzzleList:["Lepj meg","Sudoku","Számsor","Caesar-kód","Találós kérdés"],
-  effects:["Klasszikus dithering","Erős fekete-fehér","Újságnyomat","Negatív"],
+  effects:["Klasszikus dithering","Erős fekete-fehér","Újságnyomat","Negatív","KÖRÖZÉS poszter"],
+  aliasLabel:"Gyanúsított álneve (nem kötelező)",aliasHint:"Ha üresen hagyod, a nyomtató kitalál egy nevet",
   ready:"NYOMTATHATÓ. HOZZ ROSSZ DÖNTÉST.",generating:"A KÁOSZ ELŐÁLLÍTÁSA FOLYAMATBAN...",
   noPhoto:"Előbb válassz képet.",bigPhoto:"A kép legyen 6 MB alatt.",
   error:"HIBA: ",done:"A Windows nyomtatási sor megkapta a szörnyű ötletedet.",
@@ -148,7 +150,13 @@ function fields(){
  if(mode==="photo"){
   const lab=document.createElement("label");lab.htmlFor="imageFile";lab.textContent=s.photo;
   const input=document.createElement("input");input.id="imageFile";input.type="file";input.accept="image/*";h.append(lab,input);
-  opt("effect",s.effect,[["dither",s.effects[0]],["threshold",s.effects[1]],["newsprint",s.effects[2]],["negative",s.effects[3]]]);
+  opt("effect",s.effect,[["dither",s.effects[0]],["threshold",s.effects[1]],["newsprint",s.effects[2]],["negative",s.effects[3]],["mostwanted",s.effects[4]]]);
+  const aliasBox=document.createElement("div");aliasBox.id="wantedAliasBox";
+  const aliasLabel=document.createElement("label");aliasLabel.htmlFor="wanted_alias";aliasLabel.textContent=s.aliasLabel;
+  const aliasInput=document.createElement("input");aliasInput.id="wanted_alias";aliasInput.maxLength=48;aliasInput.placeholder=s.aliasHint;
+  aliasBox.append(aliasLabel,aliasInput);h.append(aliasBox);
+  const visibility=()=>{aliasBox.style.display=$("effect").value==="mostwanted"?"block":"none"};
+  $("effect").onchange=visibility;visibility();
   const p=document.createElement("p");p.className="hint";p.textContent=s.photoNote;h.append(p);
  }
  if(mode==="certificate"){
@@ -206,7 +214,7 @@ async function generate(kind=mode,payload=null){
   const data=payload?{...payload}:{};
   data.lang=selectedLang;data.pad_mm=Number($("pad").value);
   if(!payload){
-   for(const id of ["level","type","effect","name","craft","theme"])if($(id))data[id]=$(id).value;
+   for(const id of ["level","type","effect","name","craft","theme","wanted_alias"])if($(id))data[id]=$(id).value;
    if(kind==="photo"){
     const f=$("imageFile").files[0];if(!f)throw new Error(t().noPhoto);
     if(f.size>6000000)throw new Error(t().bigPhoto);data.image=await fileData(f);
