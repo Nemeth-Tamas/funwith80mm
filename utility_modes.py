@@ -10,7 +10,7 @@ import re
 import qrcode
 from PIL import Image
 
-UTILITY_KINDS = frozenset(("qr", "checklist", "note", "cheatsheet", "legal"))
+UTILITY_KINDS = frozenset(("qr", "checklist", "note", "cheatsheet", "legal", "deposit"))
 
 CHEATSHEETS = {
     "en": {
@@ -310,6 +310,40 @@ def legal_terms(data):
     return result
 
 
+def parts_order_terms(data):
+    """Select PREPAYMENT vs contractual EARNEST MONEY; never an automatic forfeiture."""
+    client = _value(data, "customer", 110, required=True)
+    part = _value(data, "part", 170, required=True)
+    reference = _value(data, "reference", 60)
+    eta = _value(data, "eta", 90)
+    seller = _value(data, "seller", 115, required=True)
+    kind = data.get("payment_kind", "advance")
+    if kind not in ("advance", "earnest"):
+        raise ValueError("Select előleg or foglaló")
+    if kind == "earnest" and data.get("earnest_agreed") is not True:
+        raise ValueError("Foglaló requires a separate clear agreement confirmed by the parties")
+    def amount(field):
+        value = data.get(field)
+        if isinstance(value, bool) or not isinstance(value, (str, int)):
+            raise ValueError(f"{field}: positive HUF amount required")
+        try:
+            number = int(value)
+        except (ValueError, TypeError, OverflowError):
+            raise ValueError(f"{field}: invalid HUF amount")
+        if number <= 0 or number > 1_000_000_000 or str(number) != str(value).strip():
+            raise ValueError(f"{field}: whole HUF amount required")
+        return number
+    total = amount("total_huf")
+    paid = amount("paid_huf")
+    if paid > total:
+        raise ValueError("Prepayment cannot exceed total price")
+    return {
+        "seller": seller, "customer": client, "part": part,
+        "reference": reference, "eta": eta, "payment_kind": kind,
+        "total_huf": total, "paid_huf": paid, "balance_huf": total - paid,
+    }
+
+
 def draw_utility(kind, data, r, lang):
     """Render into existing Receipt; caller handles cached preview and bottom feed."""
     hu = lang == "hu"
@@ -393,6 +427,44 @@ def draw_utility(kind, data, r, lang):
         for entry in lines:
             _item(r, entry, checkbox=False)
         return tx("Pocket technical reference", "Zsebben hordható műszaki puska")
+
+    if kind == "deposit":
+        info = parts_order_terms(data)
+        fmt = lambda amount: f"{amount:,}".replace(",", " ") + " Ft"
+        r.text("CELLNET // ALKATRÉSZRENDELÉS", 23, True, "center").rule(True)
+        r.text("MEGRENDELÉS / BEFIZETÉS", 28, True, "center").rule()
+        r.text("NEM SZÁMLA VAGY NYUGTA", 20, True, "center")
+        r.space(7)
+        r.text("Dátum: " + datetime.now().strftime("%Y-%m-%d %H:%M"), 19)
+        r.text("Eladó: " + info["seller"], 19)
+        r.text("Megrendelő: " + info["customer"], 20)
+        if info["reference"]:
+            r.text("Rendelési azonosító: " + info["reference"], 19)
+        r.text("Alkatrész: " + info["part"], 24, True).rule()
+        r.text("TELJES VÉTELÁR: " + fmt(info["total_huf"]), 22, True)
+        r.text("ÁTVETT ÖSSZEG: " + fmt(info["paid_huf"]), 24, True)
+        r.text("FENNMARADÓ: " + fmt(info["balance_huf"]), 22, True)
+        if info["eta"]:
+            r.text("Várható beérkezés: " + info["eta"], 19)
+        r.rule(True)
+        if info["payment_kind"] == "earnest":
+            r.text("FOGLALÓ - Ptk. 6:185. §", 25, True)
+            r.text("A felek külön megállapodásában a fenti összeg FOGLALÓ: a kötelezettségvállalás megerősítésére szolgál. Teljesítéskor beszámít a vételárba.", 20)
+            r.text("Ha a teljesítés a vevő felelősségi körében hiúsul meg, az adott foglaló elvész; ha az eladó felelős, a kapott foglaló kétszeresét kell visszaadni. Ha egyik vagy mindkét fél felelős, a foglaló visszajár.", 20)
+            r.text("Túlzott foglalót a bíróság mérsékelhet. A törvényes elállási és fogyasztói jogok nem zárhatók ki.", 19)
+            r.text("FIGYELEM: A foglaló jellegét külön, egyértelmű szerződésben rögzítsék. Önmagában e hőpapíros lap nem helyettesíti azt.", 19, True)
+        else:
+            r.text("ELŐLEG - NEM FOGLALÓ", 25, True)
+            r.text("A befizetett összeg vételárba beszámító ELŐLEG. Nem válik automatikusan vissza nem térítendővé. Megszűnés, elállás vagy meghiúsulás esetén az elszámolást a szerződés és az alkalmazandó jog szabályozza.", 20)
+            r.text("Esetleges bizonyított kár vagy jogszerű követelés rendezése külön történik.", 19)
+        r.rule()
+        r.text("Megrendelő aláírása:", 19).space(30)
+        r.text("................................", 21).space(7)
+        r.text("Átvevő / eladó aláírása:", 19).space(30)
+        r.text("................................", 21)
+        r.rule()
+        r.text("A befizetésről a jogszabály szerinti adóügyi bizonylatot külön kell kiállítani. A hőpapír idővel kifakulhat; a szerződést és a bizonylatot tartós formában őrizze meg.", 17)
+        return "Alkatrész megrendelés / " + ("foglaló" if info["payment_kind"] == "earnest" else "előleg") + " - nem adóügyi bizonylat"
 
     if kind == "legal":
         if lang not in ("en", "hu"):
