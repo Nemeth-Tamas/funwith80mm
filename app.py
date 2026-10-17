@@ -13,6 +13,7 @@ from flask import Flask, jsonify, request, send_from_directory
 from PIL import Image, ImageDraw, ImageFont, ImageOps, UnidentifiedImageError
 from content import BANK
 from extra_library import EXTRA
+from chaos_games import GAMES, BINGO_THEMES, bingo_card
 
 ROOT = Path(__file__).resolve().parent
 app = Flask(__name__, static_folder=str(ROOT / "static"))
@@ -130,6 +131,73 @@ class Receipt:
                     self.d.text((int(x0+col*c+(c-self.d.textlength(s,font=f))/2),
                                  int(y0+row*c+9)), s, font=f, fill=0)
         self.y += 9*c + 17
+        return self
+
+    def bingo(self, cells):
+        """Printable 5x5 game card. Custom compact text only inside this grid."""
+        if len(cells) != 25:
+            raise ValueError("Bingo requires 25 squares")
+        left, cell_width, cell_height = 28, 104, 118
+        self.y += 9
+        letter_face = font(29, True)
+        for col, letter in enumerate("BINGO"):
+            center = left + col * cell_width + cell_width / 2
+            width = self.d.textlength(letter, font=letter_face)
+            self.d.text((int(center-width/2), self.y), letter, font=letter_face, fill=0)
+        self.y += 47
+        top = self.y
+
+        def wrap_square(value, face, line_width):
+            result, current = [], ""
+            for word in value.split():
+                remaining = word
+                # Long Hungarian compound words must still fit in their square.
+                while self.d.textlength(remaining, font=face) > line_width:
+                    if current:
+                        result.append(current)
+                        current = ""
+                    stop = 1
+                    while (stop < len(remaining) and
+                           self.d.textlength(remaining[:stop+1], font=face) <= line_width):
+                        stop += 1
+                    result.append(remaining[:stop])
+                    remaining = remaining[stop:]
+                if not remaining:
+                    continue
+                candidate = (current + " " + remaining).strip()
+                if self.d.textlength(candidate, font=face) <= line_width:
+                    current = candidate
+                else:
+                    if current:
+                        result.append(current)
+                    current = remaining
+            if current:
+                result.append(current)
+            return result
+
+        for index, value in enumerate(cells):
+            if not isinstance(value, str) or not value.strip():
+                raise ValueError("Bingo squares must contain text")
+            row, col = divmod(index, 5)
+            x = left + col*cell_width
+            y = top + row*cell_height
+            self.d.rectangle((x, y, x+cell_width, y+cell_height),
+                             outline=0, width=3 if index == 12 else 2)
+            for font_size in (17, 16, 15, 14, 13):
+                face = font(font_size, index == 12)
+                lines = wrap_square(value, face, cell_width-12)
+                line_height = max(19, self.height(face)-2)
+                if len(lines) <= 5 and len(lines)*line_height <= cell_height-10:
+                    break
+            else:
+                raise ValueError("A bingo square cannot fit on 80 mm paper")
+            text_y = y + (cell_height - len(lines)*line_height)/2
+            for line in lines:
+                text_width = self.d.textlength(line, font=face)
+                self.d.text((int(x+(cell_width-text_width)/2), int(text_y)),
+                            line, font=face, fill=0)
+                text_y += line_height
+        self.y = top + 5*cell_height + 15
         return self
 
     def photo(self, photo):
@@ -340,6 +408,38 @@ def build(kind, data):
             r.text(body, 29, True)
             r.space(12).text(tx("REPLY NOT YET AVAILABLE", "VÁLASZ MÉG NEM LÉTEZIK"), 18)
             meta = tx("A note that hasn't been written yet", "Üzenet, amit még nem írtak meg")
+    elif kind == "paranormal":
+        observation, verdict = choice(GAMES[lang]["paranormal"])
+        r.heading(tx("Paranormal Investigation Bureau", "Paranormális Nyomozóiroda"),
+                  tx("INCIDENT REPORT", "INCIDENSJELENTÉS"))
+        r.pair(tx("CASE", "ÜGYIRAT"), f"P-{random.randint(10000, 99999)}")
+        r.pair(tx("SEVERITY", "VESZÉLY"), choice(["?", "IV", "UNKNOWN"])).rule()
+        r.text(tx("REPORTED ANOMALY", "BEJELENTETT JELENSÉG"), 20, True)
+        r.space(7).text(observation, 28, True).space(16)
+        r.rule()
+        r.text(tx("INVESTIGATION RESULT", "VIZSGÁLAT EREDMÉNYE"), 20, True)
+        r.space(7).text(verdict, 27, True)
+        r.space(10).text(tx("CASE CLOSED. ENTITY DISAPPOINTED.", "ÜGY LEZÁRVA. A SZELLEM CSALÓDOTT."), 17, False, "center")
+        meta = tx("A paranormal report with an unexpectedly mundane punchline",
+                  "Paranormális ügyirat kellemetlenül hétköznapi megfejtéssel")
+    elif kind == "bingo":
+        theme = str(data.get("theme", "repair"))
+        if theme not in BINGO_THEMES:
+            raise ValueError("Unknown bingo theme")
+        titles = {
+            "repair": tx("IT REPAIR", "SZERVIZKÁOSZ"),
+            "customers": tx("CUSTOMERS", "ÜGYFÉLKÁOSZ"),
+            "home": tx("HOUSEHOLD", "OTTHONI KÁOSZ"),
+            "cosmic": tx("COSMIC", "KOZMIKUS KÁOSZ"),
+        }
+        r.heading(tx("Paper-based chaos prediction", "Papíralapú káoszelőrejelzés"),
+                  "THERMAL BINGO")
+        r.text(titles[theme], 23, True, "center").space(6)
+        r.bingo(bingo_card(lang, theme))
+        r.text(tx("MARK EVENTS AS THEY HAPPEN.", "JELÖLD BE, AMI MEGTÖRTÉNT."), 19, True, "center")
+        r.text(tx("FIVE IN A ROW = BINGO!", "ÖT EGY SORBAN = BINGÓ!"), 20, True, "center")
+        meta = tx(f"5x5 randomized {theme} bingo with a free center",
+                  "5x5-ös, véletlenszerű bingó szabad középső mezővel")
     elif kind == "certificate":
         title, description = choice(bank["certs"])
         name = re.sub(r"[\x00-\x1f]", "", str(data.get("name", "")).strip())[:56] or tx("THE BEARER", "AZ OKLEVÉL TULAJDONOSA")
