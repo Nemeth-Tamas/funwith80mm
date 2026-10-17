@@ -15,15 +15,16 @@ header p{margin:10px 0;color:#c2b5dd}.kicker{font-weight:850;color:#eebafa;lette
 main{padding-top:20px}.layout{display:grid;grid-template-columns:minmax(0,1.18fr) minmax(290px,.82fr);gap:20px}
 .panel{background:#151421;border:1px solid #393049;border-radius:18px;padding:20px;box-shadow:0 12px 28px #05050a55}
 h2{font-size:1.12rem;letter-spacing:-.02em;margin:0 0 15px}.modes{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px}
-button,select,input{font:inherit}
+button,select,input,textarea{font:inherit}
 button{color:#ede8ff;background:#242036;border:1px solid #504167;border-radius:12px;cursor:pointer;transition:background .14s,transform .14s}
 button:hover{background:#382d53;border-color:#b78bfd}button:active{transform:scale(.98)}
 .mode{padding:13px 9px;min-height:91px;display:flex;flex-direction:column;gap:5px;text-align:left;justify-content:center}
 .mode .emoji{font-size:1.38rem}.mode .name{font-size:.85rem;font-weight:750;line-height:1.15}
 .mode.selected{background:#68419d;border-color:#dcb7ff;box-shadow:inset 0 0 0 1px #e6c8ff}
 label{display:block;margin:14px 0 5px;font-size:.83rem;font-weight:600;color:#cfbfeb}
-select,input:not([type=checkbox]){width:100%;padding:10px 12px;border-radius:10px;background:#0d0d18;color:#f6f1ff;border:1px solid #504365;min-width:0}
+select,textarea,input:not([type=checkbox]){width:100%;padding:10px 12px;border-radius:10px;background:#0d0d18;color:#f6f1ff;border:1px solid #504365;min-width:0}
 input[type=file]{font-size:.85rem}
+textarea{resize:vertical;min-height:95px}.utility-check{margin-top:14px;line-height:1.4}.utility-check span{font-size:.86rem;color:#d4c9ed}
 .controls{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:3px}
 .check{display:flex;gap:9px;align-items:center;font-weight:400}
 .check input{accent-color:#bb92fc}
@@ -78,7 +79,10 @@ const MODES=[
  {id:"certificate",emoji:"🏆"}, {id:"fpv",emoji:"🚁"}, {id:"fake",emoji:"🧾"},
  {id:"psyops",emoji:"🗂️"}, {id:"patch",emoji:"🪐"}, {id:"prophecy",emoji:"🔮"},
  {id:"complaint",emoji:"⚖️"}, {id:"future",emoji:"📼"},
- {id:"paranormal",emoji:"🛸"}, {id:"bingo",emoji:"🎯"}, {id:"roulette",emoji:"💀"}
+ {id:"paranormal",emoji:"🛸"}, {id:"bingo",emoji:"🎯"},
+ {id:"qr",emoji:"▦"}, {id:"checklist",emoji:"☑️"}, {id:"note",emoji:"📝"},
+ {id:"cheatsheet",emoji:"📚"}, {id:"legal",emoji:"⚖️"}, {id:"deposit",emoji:"📦"},
+ {id:"roulette",emoji:"💀"}
 ];
 const TXT={
  en:{
@@ -86,8 +90,8 @@ const TXT={
   pick:"Choose your chaos",preview:"The evidence",empty:"Select a button. Create a problem.",
   printer:"Windows receipt printer (USB or network)",refresh:"↻ Find printers",padding:"Bottom margin before cut",cut:"Auto-cut",
   gen:"↻ SUMMON CHAOS",print:"🖨 PRINT IT",hint:"Print through a Windows-installed USB or network receipt printer.",
-  name:["ROAST ME","CHAOS QUEST","BRAIN DAMAGE","THERMAL PHOTO","HAUNTED SIGNAL","PURE HORROR","PSYCHO HORROR","FAKE CERTIFICATE","FPV MISSION","FAKE RECEIPT","PSYOPS","REALITY PATCH NOTES","PROPHECY","COSMIC COMPLAINTS","FUTURE TRANSMISSION","PARANORMAL BUREAU","THERMAL BINGO","CHAOS ROULETTE"],
-  desc:["Your self-esteem wasn't using those hit points.","Receive an unsolicited quest.","Pocket puzzles; solutions on demand.","Convert pictures into edible-looking pixels.","Disturbing transmissions from impossible devices.","Very short stories. Very wrong endings.","Two sentences to make your own memories feel untrustworthy.","Award yourself an absurd qualification.","A fresh little flying challenge.","Buy something from a shop that shouldn't exist.","A bureaucratic memo that knows too much.","Patch notes for a defective universe.","Uncomfortably specific, deeply unreliable predictions.","File an official grievance against existence.","Receive tomorrow's message several decades early.","Dead-serious paranormal reports with very stupid explanations.","5×5 printable bingo: IT, customers, home or cosmic disasters.","No choosing. Just pure unpredictable nonsense."],
+  name:["ROAST ME","CHAOS QUEST","BRAIN DAMAGE","THERMAL PHOTO","HAUNTED SIGNAL","PURE HORROR","PSYCHO HORROR","FAKE CERTIFICATE","FPV MISSION","FAKE RECEIPT","PSYOPS","REALITY PATCH NOTES","PROPHECY","COSMIC COMPLAINTS","FUTURE TRANSMISSION","PARANORMAL BUREAU","THERMAL BINGO","QR FACTORY","CHECKLIST","QUICK NOTE","CHEAT SHEET","CUSTOMER RIGHTS","PARTS PAYMENT","CHAOS ROULETTE"],
+  desc:["Your self-esteem wasn't using those hit points.","Receive an unsolicited quest.","Pocket puzzles; solutions on demand.","Convert pictures into edible-looking pixels.","Disturbing transmissions from impossible devices.","Very short stories. Very wrong endings.","Two sentences to make your own memories feel untrustworthy.","Award yourself an absurd qualification.","A fresh little flying challenge.","Buy something from a shop that shouldn't exist.","A bureaucratic memo that knows too much.","Patch notes for a defective universe.","Uncomfortably specific, deeply unreliable predictions.","File an official grievance against existence.","Receive tomorrow's message several decades early.","Dead-serious paranormal reports with very stupid explanations.","5×5 printable bingo: IT, customers, home or cosmic disasters.","Wi-Fi, links, contacts and text as scannable QR.","A checklist that actually fits in your pocket.","A note you can physically put on your desk.","Handy technical references and custom crib sheets.","Hungarian statutory consumer-rights information, not a warranty certificate.","Parts order, advance payment or separately agreed earnest money.","No choosing. Just pure unpredictable nonsense."],
   choose:"Choose",levels:"Damage level",difficulty:"Difficulty",puzzle:"Puzzle type",
   bingoTheme:"Bingo theme",bingoThemes:["IT repair chaos","Customers from hell","Household nonsense","Cosmic accidents"],
   nameInput:"Name on the certificate (optional)",nameHolder:"THE BEARER",craft:"Aircraft",
@@ -98,6 +102,25 @@ const TXT={
   aliasLabel:"Suspect alias (optional)",aliasHint:"Blank = the printer invents a criminal name",
   wantedThemeLabel:"Poster humor",wantedThemes:["Surprise me","Shop / everyday nonsense","Geek / workshop nonsense"],
   wantedReroll:"🎲 NEW ACCUSATIONS (same photo)",
+  utilities:{
+    title:"Title / heading", items:"One item per line", message:"Message to print",
+    size:"Text size", sizes:["Normal","Large"], date:"Print date and time",
+    qrType:"QR payload", qrTypes:["Website URL","Plain text","Wi-Fi","Contact card"],
+    qrData:"Link or text", ssid:"Wi-Fi name (SSID)", password:"Wi-Fi password",
+    wifiSecurity:"Wi-Fi security", hidden:"Hidden network", qrCaption:"Caption (optional)",
+    phone:"Phone", email:"Email", contact:"Name", sheet:"Reference topic",
+    sheetTypes:["Subnetting","Windows","Linux","MikroTik","Python","C#","Electronics","Custom"],
+    product:"Product description", seller:"Seller", price:"Gross price (HUF)",
+    category:"Product category", categoryTypes:["New durable good covered by mandatory warranty decree","Other new goods","Used goods","Uncertain / needs assessment"],
+    channel:"How was it sold?", channels:["In physical store","Online / distance or off-premises"],
+    warning:"This is an informational slip, not a warranty certificate, tax receipt or invoice. Review the legal classification and give required information in durable form.",
+    customer:"Customer / purchaser", part:"Part ordered", reference:"Order / repair reference",
+    eta:"Expected arrival (optional)", total:"Total agreed price (HUF)",
+    paid:"Amount received (HUF)", paymentKind:"Payment classification",
+    paymentKinds:["ELŐLEG (advance payment)","FOGLALÓ (expressly agreed earnest money)"],
+    earnestAgree:"I confirm the customer separately and clearly agreed to foglaló terms (Ptk. 6:185).",
+    depositWarning:"A prepayment is not automatically non-refundable. Foglaló has specific refund/forfeiture rules; use a separately agreed durable contract and issue the proper tax document."
+  },
   ready:"READY TO PRINT. MAKE A BAD DECISION.",generating:"SUMMONING THE NONSENSE...",
   noPhoto:"Choose a photo first.",bigPhoto:"Image must be below 6 MB.",
   error:"ERROR: ",done:"The Windows printer queue has received your terrible idea.",
@@ -111,8 +134,8 @@ const TXT={
   pick:"Válaszd ki a káoszt",preview:"A bizonyíték",empty:"Nyomj egy gombot. Generálj egy problémát.",
   printer:"Windows blokknyomtató (USB vagy hálózat)",refresh:"↻ Nyomtatók keresése",padding:"Alsó ráhagyás vágás előtt",cut:"Automatikus vágás",
   gen:"↻ KÁOSZT IDE!",print:"🖨 NYOMTASD!",hint:"Nyomtatás Windowsban telepített USB-s vagy hálózati blokknyomtatóra.",
-  name:["ALÁZZ MEG!","KÁOSZKÜLDETÉS","AGYTORNA","HŐNYOMAT","KÍSÉRTETJEL","TISZTA HORROR","PSZICHOHORROR","KAMU OKLEVÉL","FPV KÜLDETÉS","KAMU BLOKK","PSYOPS","VALÓSÁGFRISSÍTÉS","JÓSLAT","KOZMIKUS PANASZOK","ÜZENET A JÖVŐBŐL","PARANORMÁLIS IRODA","THERMAL BINGÓ","KÁOSZROULETT"],
-  desc:["A maradék önbecsülésedet is bedaráljuk.","Teljesen értelmetlen mellékküldetés.","Zsebméretű rejtvények külön megfejtéssel.","Csináljunk egy fotóból pixeles műalkotást.","Üzenetek olyan eszközökről, amik nem is léteznek.","Pár sor. Aztán nem fogsz jól aludni.","Két mondat, amitől már a saját emlékeidben sem bízol.","Kapj hivatalosan értéktelen címet.","Egy repülés, egy kihívás.","Vásárolj egy lehetetlen univerzumban.","Hivatalos papír, ami túlságosan sokat tud rólad.","A hibás univerzum legfrissebb változásai.","Kellemetlenül konkrét, megbízhatatlan jóslatok.","Tegyél hivatalos panaszt a létezés ellen.","Évtizedekkel korábban kézbesített üzenet.","Halálosan komoly paranormális jelentések abszurd megfejtéssel.","5×5-ös nyomtatható bingó: szerviz, ügyfelek, otthon vagy kozmosz.","Vakon belenyúlsz a káoszba. Bármi történhet."],
+  name:["ALÁZZ MEG!","KÁOSZKÜLDETÉS","AGYTORNA","HŐNYOMAT","KÍSÉRTETJEL","TISZTA HORROR","PSZICHOHORROR","KAMU OKLEVÉL","FPV KÜLDETÉS","KAMU BLOKK","PSYOPS","VALÓSÁGFRISSÍTÉS","JÓSLAT","KOZMIKUS PANASZOK","ÜZENET A JÖVŐBŐL","PARANORMÁLIS IRODA","THERMAL BINGÓ","QR-KÓD GYÁR","ELLENŐRZŐLISTA","GYORS JEGYZET","ZSEB-PUSKA","VÁSÁRLÓI JOGOK","ALKATRÉSZ ELŐLEG","KÁOSZROULETT"],
+  desc:["A maradék önbecsülésedet is bedaráljuk.","Teljesen értelmetlen mellékküldetés.","Zsebméretű rejtvények külön megfejtéssel.","Csináljunk egy fotóból pixeles műalkotást.","Üzenetek olyan eszközökről, amik nem is léteznek.","Pár sor. Aztán nem fogsz jól aludni.","Két mondat, amitől már a saját emlékeidben sem bízol.","Kapj hivatalosan értéktelen címet.","Egy repülés, egy kihívás.","Vásárolj egy lehetetlen univerzumban.","Hivatalos papír, ami túlságosan sokat tud rólad.","A hibás univerzum legfrissebb változásai.","Kellemetlenül konkrét, megbízhatatlan jóslatok.","Tegyél hivatalos panaszt a létezés ellen.","Évtizedekkel korábban kézbesített üzenet.","Halálosan komoly paranormális jelentések abszurd megfejtéssel.","5×5-ös nyomtatható bingó: szerviz, ügyfelek, otthon vagy kozmosz.","Wi-Fi, link, névjegy vagy szöveg beolvasható QR-kódon.","Kipipálható zseb-ellenőrzőlista.","Gyors, nagybetűs emlékeztető az asztalra.","Műszaki puskák és saját jegyzetek.","Magyar fogyasztói jogi tájékoztató, nem jótállási jegy.","Alkatrészrendelés, előleg vagy külön megállapodott foglaló.","Vakon belenyúlsz a káoszba. Bármi történhet."],
   choose:"Válassz",levels:"Lelki sérülés mértéke",difficulty:"Nehézség",puzzle:"Rejtvény típusa",
   bingoTheme:"Bingó témája",bingoThemes:["Szervizkáosz","Ügyfelek pokla","Otthoni őrület","Kozmikus anomáliák"],
   nameInput:"Név az oklevélre (opcionális)",nameHolder:"AZ OKLEVÉL TULAJDONOSA",craft:"Gép",
@@ -123,6 +146,25 @@ const TXT={
   aliasLabel:"Gyanúsított álneve (nem kötelező)",aliasHint:"Ha üresen hagyod, a nyomtató kitalál egy nevet",
   wantedThemeLabel:"Körözési humor",wantedThemes:["Lepj meg","Bolti / hétköznapi őrület","Műhely / kockaőrület"],
   wantedReroll:"🎲 ÚJ VÁDAK (ugyanaz a fotó)",
+  utilities:{
+    title:"Cím / fejléc", items:"Soronként egy tétel", message:"Nyomtatandó üzenet",
+    size:"Betűméret", sizes:["Normál","Nagy"], date:"Dátum és idő nyomtatása",
+    qrType:"QR-kód típusa", qrTypes:["Weboldal linkje","Egyszerű szöveg","Wi-Fi","Névjegykártya"],
+    qrData:"Link vagy szöveg", ssid:"Wi-Fi neve (SSID)", password:"Wi-Fi jelszó",
+    wifiSecurity:"Wi-Fi védelem", hidden:"Rejtett hálózat", qrCaption:"Felirat (nem kötelező)",
+    phone:"Telefonszám", email:"E-mail", contact:"Név", sheet:"Puska témája",
+    sheetTypes:["Alhálózatok","Windows","Linux","MikroTik","Python","C#","Elektronika","Saját"],
+    product:"Termék megnevezése", seller:"Eladó", price:"Bruttó ár (Ft)",
+    category:"Termékkör", categoryTypes:["151/2003. Korm. rendelet alá tartozó új tartós fogyasztási cikk","Más új áru","Használt áru","Bizonytalan / ellenőrizendő"],
+    channel:"Értékesítés módja", channels:["Személyesen az üzletben","Távértékesítés / üzlethelyiségen kívül"],
+    warning:"Kiegészítő tájékoztató: NEM jótállási jegy, számla vagy nyugta. Ellenőrizd a termékkört, és add át a kötelező tájékoztatást tartósan olvasható formában!",
+    customer:"Megrendelő neve", part:"Rendelt alkatrész", reference:"Rendelés / szerviz azonosító",
+    eta:"Várható beérkezés (opcionális)", total:"Teljes vételár (Ft)",
+    paid:"Átvett összeg (Ft)", paymentKind:"Befizetés jogcíme",
+    paymentKinds:["ELŐLEG (vételárba beszámít)","FOGLALÓ (külön, egyértelmű megállapodással)"],
+    earnestAgree:"Igazolom, hogy a vevővel külön, egyértelműen megállapodtunk a foglaló rendeltetéséről (Ptk. 6:185. §).",
+    depositWarning:"Az előleg nem automatikusan vissza nem térítendő! Foglalónál szigorú törvényi szabályok vannak. Külön megállapodás és adóügyi bizonylat is szükséges."
+  },
   ready:"NYOMTATHATÓ. HOZZ ROSSZ DÖNTÉST.",generating:"A KÁOSZ ELŐÁLLÍTÁSA FOLYAMATBAN...",
   noPhoto:"Előbb válassz képet.",bigPhoto:"A kép legyen 6 MB alatt.",
   error:"HIBA: ",done:"A Windows nyomtatási sor megkapta a szörnyű ötletedet.",
@@ -142,6 +184,111 @@ function opt(id,label,options,selected){
  options.forEach(([v,s])=>sel.add(new Option(s,v)));
  if(selected)sel.value=selected;
  holder.append(lab,sel);
+}
+function fieldInput(id,label,placeholder="",type="text",max=200,value=""){
+ const h=$("extra"),lab=document.createElement("label"),input=document.createElement("input");
+ lab.htmlFor=id;lab.textContent=label;input.id=id;input.type=type;
+ if(max)input.maxLength=max;if(placeholder)input.placeholder=placeholder;
+ input.value=value;h.append(lab,input);return input;
+}
+function fieldArea(id,label,placeholder="",value=""){
+ const h=$("extra"),lab=document.createElement("label"),area=document.createElement("textarea");
+ lab.htmlFor=id;lab.textContent=label;area.id=id;area.rows=7;
+ area.placeholder=placeholder;area.value=value;h.append(lab,area);return area;
+}
+function fieldCheck(id,label){
+ const host=document.createElement("label");host.className="check utility-check";
+ const input=document.createElement("input");input.type="checkbox";input.id=id;
+ const caption=document.createElement("span");caption.textContent=label;
+ host.append(input,caption);$("extra").append(host);return input;
+}
+function utilityHint(text){
+ const p=document.createElement("p");p.className="hint";p.textContent=text;$("extra").append(p);
+}
+function utilityFields(s){
+ const u=s.utilities;
+ if(mode==="qr"){
+  opt("qr_type",u.qrType,[["url",u.qrTypes[0]],["text",u.qrTypes[1]],["wifi",u.qrTypes[2]],["contact",u.qrTypes[3]]]);
+  const host=document.createElement("div");host.id="qrDynamic";$("extra").append(host);
+  const redraw=()=>{
+   const type=$("qr_type").value;host.replaceChildren();
+   const h=$("extra"),old=h;
+   const wrap=(id,label,placeholder="",inputType="text",max=200)=>{
+    const l=document.createElement("label");l.htmlFor=id;l.textContent=label;
+    const el=document.createElement("input");el.id=id;el.type=inputType;
+    el.maxLength=max;el.placeholder=placeholder;host.append(l,el);return el;
+   };
+   if(type==="wifi"){
+    wrap("ssid",u.ssid);wrap("wifi_password",u.password,"", "password");
+    const l=document.createElement("label");l.htmlFor="wifi_security";l.textContent=u.wifiSecurity;
+    const sel=document.createElement("select");sel.id="wifi_security";
+    [["WPA","WPA/WPA2/WPA3"],["WEP","WEP"],["nopass","Open / Nincs jelszó"]].forEach(([v,t])=>sel.add(new Option(t,v)));
+    host.append(l,sel);const c=document.createElement("label");c.className="check utility-check";
+    const inp=document.createElement("input");inp.type="checkbox";inp.id="wifi_hidden";
+    const txt=document.createElement("span");txt.textContent=u.hidden;c.append(inp,txt);host.append(c);
+   }else if(type==="contact"){
+    wrap("contact_name",u.contact);
+    wrap("contact_phone",u.phone);
+    wrap("contact_email",u.email,"","email");
+   }else{
+    wrap("qr_value",u.qrData,type==="url"?"https://example.com":"", "text",1200);
+   }
+  };
+  $("qr_type").onchange=redraw;redraw();
+  fieldInput("title",u.qrCaption,"", "text",64);
+  return;
+ }
+ if(mode==="checklist"){
+  fieldInput("title",u.title, "", "text",76);
+  fieldArea("items",u.items, "- First item / Első tétel\n- Second item / Második tétel");return;
+ }
+ if(mode==="note"){
+  fieldInput("title",u.title,"", "text",76);
+  fieldArea("message",u.message);
+  opt("note_size",u.size,[["normal",u.sizes[0]],["large",u.sizes[1]]]);
+  fieldCheck("timestamp",u.date);return;
+ }
+ if(mode==="cheatsheet"){
+  opt("sheet",u.sheet,[["subnet",u.sheetTypes[0]],["windows",u.sheetTypes[1]],
+    ["linux",u.sheetTypes[2]],["mikrotik",u.sheetTypes[3]],
+    ["python",u.sheetTypes[4]],["csharp",u.sheetTypes[5]],
+    ["electronics",u.sheetTypes[6]],["custom",u.sheetTypes[7]]]);
+  const host=document.createElement("div");host.id="sheetCustom";$("extra").append(host);
+  const l=document.createElement("label");l.htmlFor="title";l.textContent=u.title;
+  const title=document.createElement("input");title.id="title";title.maxLength=70;
+  const l2=document.createElement("label");l2.htmlFor="items";l2.textContent=u.items;
+  const ta=document.createElement("textarea");ta.id="items";ta.rows=8;
+  host.append(l,title,l2,ta);
+  const vis=()=>host.hidden=$("sheet").value!=="custom";
+  $("sheet").onchange=vis;vis();return;
+ }
+ if(mode==="legal"){
+  fieldInput("seller",u.seller,"","text",115,"Cellnet Elektronikai és Informatikai Kft.");
+  fieldInput("product",u.product,"","text",110);
+  fieldInput("price_huf",u.price,"Ft","number",null);
+  opt("sale_kind",u.category,[["unknown",u.categoryTypes[3]],["new_eligible",u.categoryTypes[0]],
+      ["new_other",u.categoryTypes[1]],["used",u.categoryTypes[2]]]);
+  opt("sale_channel",u.channel,[["store",u.channels[0]],["distance",u.channels[1]]]);
+  utilityHint(u.warning);return;
+ }
+ if(mode==="deposit"){
+  fieldInput("seller",u.seller,"","text",115,"Cellnet Elektronikai és Informatikai Kft.");
+  fieldInput("customer",u.customer,"","text",110);
+  fieldInput("part",u.part,"","text",170);
+  fieldInput("reference",u.reference,"","text",60);
+  fieldInput("total_huf",u.total,"Ft","number",null);
+  fieldInput("paid_huf",u.paid,"Ft","number",null);
+  fieldInput("eta",u.eta,"","text",90);
+  opt("payment_kind",u.paymentKind,[["advance",u.paymentKinds[0]],["earnest",u.paymentKinds[1]]]);
+  const box=document.createElement("div");box.id="earnestBox";$("extra").append(box);
+  const confirm=document.createElement("label");confirm.className="check utility-check";
+  const input=document.createElement("input");input.type="checkbox";input.id="earnest_agreed";
+  const caption=document.createElement("span");caption.textContent=u.earnestAgree;
+  confirm.append(input,caption);box.append(confirm);
+  const vis=()=>box.hidden=$("payment_kind").value!=="earnest";
+  $("payment_kind").onchange=vis;vis();
+  utilityHint(u.depositWarning);
+ }
 }
 function fields(){
  const s=t(),h=$("extra");h.replaceChildren();
@@ -176,6 +323,7 @@ function fields(){
  }
  if(mode==="fpv")opt("craft",s.craft,[["Meteor75 Pro II","Meteor75 Pro II"],["Air75 II","Air75 II"],["Avata 2","Avata 2"],["MM-001","MM-001"]]);
  if(mode==="bingo")opt("theme",s.bingoTheme,[["repair",s.bingoThemes[0]],["customers",s.bingoThemes[1]],["home",s.bingoThemes[2]],["cosmic",s.bingoThemes[3]]]);
+ if(["qr","checklist","note","cheatsheet","legal","deposit"].includes(mode))utilityFields(s);
 }
 function clearPreview(){
  current=null;answer=null;$("print").disabled=true;$("answer").style.display="none";
@@ -225,7 +373,8 @@ async function generate(kind=mode,payload=null){
   const data=payload?{...payload}:{};
   data.lang=selectedLang;data.pad_mm=Number($("pad").value);
   if(!payload){
-   for(const id of ["level","type","effect","name","craft","theme","wanted_alias","wanted_theme"])if($(id))data[id]=$(id).value;
+   for(const id of ["level","type","effect","name","craft","theme","wanted_alias","wanted_theme","title","items","message","note_size","qr_type","qr_value","ssid","wifi_password","wifi_security","contact_name","contact_phone","contact_email","sheet","seller","product","price_huf","sale_kind","sale_channel","customer","part","reference","total_huf","paid_huf","eta","payment_kind"])if($(id))data[id]=$(id).value;
+   for(const id of ["timestamp","wifi_hidden","earnest_agreed"])if($(id))data[id]=$(id).checked;
    if(kind==="photo"){
     const f=$("imageFile").files[0];if(!f)throw new Error(t().noPhoto);
     if(f.size>6000000)throw new Error(t().bigPhoto);data.image=await fileData(f);
