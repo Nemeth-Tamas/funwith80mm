@@ -75,7 +75,8 @@ button:disabled{opacity:.43;cursor:not-allowed;transform:none!important}
 const MODES=[
  {id:"insult",emoji:"🔥"}, {id:"quest",emoji:"🎲"}, {id:"puzzle",emoji:"🧠"},
  {id:"photo",emoji:"📸"}, {id:"mystery",emoji:"📡"}, {id:"horror",emoji:"👁️"},
- {id:"certificate",emoji:"🏆"}, {id:"fpv",emoji:"🚁"}, {id:"fake",emoji:"🧾"}
+ {id:"certificate",emoji:"🏆"}, {id:"fpv",emoji:"🚁"}, {id:"fake",emoji:"🧾"},
+ {id:"roulette",emoji:"💀"}
 ];
 const TXT={
  en:{
@@ -83,8 +84,8 @@ const TXT={
   pick:"Choose your chaos",preview:"The evidence",empty:"Select a button. Create a problem.",
   printer:"USB printer",refresh:"↻ Find printers",padding:"Bottom margin before cut",cut:"Auto-cut",
   gen:"↻ SUMMON CHAOS",print:"🖨 PRINT IT",hint:"Preview first, paper second. All printing stays on the Windows USB queue.",
-  name:["ROAST ME","CHAOS QUEST","BRAIN DAMAGE","THERMAL PHOTO","HAUNTED SIGNAL","PURE HORROR","FAKE CERTIFICATE","FPV MISSION","FAKE RECEIPT"],
-  desc:["Your self-esteem wasn't using those hit points.","Receive an unsolicited quest.","Pocket puzzles; solutions on demand.","Convert pictures into edible-looking pixels.","Disturbing transmissions from impossible devices.","Very short stories. Very wrong endings.","Award yourself an absurd qualification.","A fresh little flying challenge.","Buy something from a shop that shouldn't exist."],
+  name:["ROAST ME","CHAOS QUEST","BRAIN DAMAGE","THERMAL PHOTO","HAUNTED SIGNAL","PURE HORROR","FAKE CERTIFICATE","FPV MISSION","FAKE RECEIPT","CHAOS ROULETTE"],
+  desc:["Your self-esteem wasn't using those hit points.","Receive an unsolicited quest.","Pocket puzzles; solutions on demand.","Convert pictures into edible-looking pixels.","Disturbing transmissions from impossible devices.","Very short stories. Very wrong endings.","Award yourself an absurd qualification.","A fresh little flying challenge.","Buy something from a shop that shouldn't exist.","No choosing. Just pure unpredictable nonsense."],
   choose:"Choose",levels:"Damage level",difficulty:"Difficulty",puzzle:"Puzzle type",
   nameInput:"Name on the certificate (optional)",nameHolder:"THE BEARER",craft:"Aircraft",
   photo:"Choose photo",effect:"Rendering effect",photoNote:"Maximum 6 MB. Tall pictures get scaled down.",
@@ -104,8 +105,8 @@ const TXT={
   pick:"Válaszd ki a káoszt",preview:"A bizonyíték",empty:"Nyomj egy gombot. Generálj egy problémát.",
   printer:"USB-nyomtató",refresh:"↻ Nyomtatók keresése",padding:"Alsó ráhagyás vágás előtt",cut:"Automatikus vágás",
   gen:"↻ KÁOSZT IDE!",print:"🖨 NYOMTASD!",hint:"Először előnézet, utána papír. Kizárólag Windows USB-nyomtató.",
-  name:["ALÁZZ MEG!","KÁOSZKÜLDETÉS","AGYTORNA","HŐNYOMAT","KÍSÉRTETJEL","TISZTA HORROR","KAMU OKLEVÉL","FPV KÜLDETÉS","KAMU BLOKK"],
-  desc:["A maradék önbecsülésedet is bedaráljuk.","Teljesen értelmetlen mellékküldetés.","Zsebméretű rejtvények külön megfejtéssel.","Csináljunk egy fotóból pixeles műalkotást.","Üzenetek olyan eszközökről, amik nem is léteznek.","Pár sor. Aztán nem fogsz jól aludni.","Kapj hivatalosan értéktelen címet.","Egy repülés, egy kihívás.","Vásárolj egy lehetetlen univerzumban."],
+  name:["ALÁZZ MEG!","KÁOSZKÜLDETÉS","AGYTORNA","HŐNYOMAT","KÍSÉRTETJEL","TISZTA HORROR","KAMU OKLEVÉL","FPV KÜLDETÉS","KAMU BLOKK","KÁOSZROULETT"],
+  desc:["A maradék önbecsülésedet is bedaráljuk.","Teljesen értelmetlen mellékküldetés.","Zsebméretű rejtvények külön megfejtéssel.","Csináljunk egy fotóból pixeles műalkotást.","Üzenetek olyan eszközökről, amik nem is léteznek.","Pár sor. Aztán nem fogsz jól aludni.","Kapj hivatalosan értéktelen címet.","Egy repülés, egy kihívás.","Vásárolj egy lehetetlen univerzumban.","Vakon belenyúlsz a káoszba. Bármi történhet."],
   choose:"Válassz",levels:"Lelki sérülés mértéke",difficulty:"Nehézség",puzzle:"Rejtvény típusa",
   nameInput:"Név az oklevélre (opcionális)",nameHolder:"AZ OKLEVÉL TULAJDONOSA",craft:"Gép",
   photo:"Válassz képet",effect:"Képátalakítás",photoNote:"Legfeljebb 6 MB. A túl magas képet lekicsinyítjük.",
@@ -194,6 +195,7 @@ function fileData(file){
 }
 async function generate(kind=mode,payload=null){
  const selectedLang=$("lang").value;
+ if(kind==="roulette")kind=["insult","quest","puzzle","mystery","horror","certificate","fpv","fake"][Math.floor(Math.random()*8)];
  $("generate").disabled=true;$("print").disabled=true;$("answer").style.display="none";tell(t().generating);
  try{
   const data=payload?{...payload}:{};
