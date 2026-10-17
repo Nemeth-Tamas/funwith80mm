@@ -12,6 +12,7 @@ from pathlib import Path
 from flask import Flask, jsonify, request, send_from_directory
 from PIL import Image, ImageDraw, ImageFont, ImageOps, UnidentifiedImageError
 from content import BANK
+from extra_library import EXTRA
 
 ROOT = Path(__file__).resolve().parent
 app = Flask(__name__, static_folder=str(ROOT / "static"))
@@ -291,6 +292,57 @@ def build(kind, data):
         r.space(14).text(choice(bank["horror"]), 33, True)
         r.space(10)
         meta = tx("A very short nightmare", "Nagyon rövid rémálom")
+    elif kind in ("psyops", "patch", "prophecy", "complaint", "future"):
+        body = choice(EXTRA[lang][kind])
+        if kind == "psyops":
+            # Fictional black-file style without a jokey signature.
+            r.heading(tx("Cognitive compliance department", "Kognitív Megfelelőségi Osztály"),
+                      "PSYOPS")
+            r.pair(tx("FILE", "ÜGYIRAT"), f"PSY-{random.randint(1000, 9999)}")
+            r.pair(tx("STATUS", "ÁLLAPOT"), tx("RESTRICTED", "KORLÁTOZOTT"))
+            r.rule(True).space(8)
+            r.text(body, 29, True).space(16)
+            r.text(tx("CONFIRMATION IS NOT REQUIRED.", "VISSZAIGAZOLÁS NEM SZÜKSÉGES."), 17, True, "center")
+            meta = tx("A fictional psychological operations notice", "Fiktív pszichológiai műveleti értesítés")
+        elif kind == "patch":
+            r.heading(tx("Universal change control", "Univerzális változáskezelés"),
+                      tx("REALITY PATCH NOTES", "VALÓSÁGFRISSÍTÉS"))
+            r.pair("BUILD", f"{random.randint(2000, 9999)}.{random.randint(0, 99)}")
+            r.rule()
+            r.text(body, 28, True)
+            r.space(12).text(tx("RESTART: UNAVAILABLE", "ÚJRAINDÍTÁS: NEM ELÉRHETŐ"), 18)
+            meta = tx("A changelog for a defective universe", "Változásnapló egy hibás univerzumhoz")
+        elif kind == "prophecy":
+            r.heading(tx("Infallible prediction services", "Tévedhetetlen Jóslatok Hivatala"),
+                      tx("THE PROPHECY", "A JÓSLAT"))
+            r.pair(tx("ACCURACY", "PONTOSSÁG"), f"{random.randint(97, 100)}%")
+            r.rule()
+            r.text(body, 30, True)
+            meta = tx("Unsolicited forecast of questionable accuracy", "Kéretlen és kétes pontosságú előrejelzés")
+        elif kind == "complaint":
+            r.heading(tx("Bureau of cosmic complaints", "Kozmikus Panaszügyi Főosztály"),
+                      tx("FINAL RULING", "VÉGZÉS"))
+            r.pair(tx("CASE", "ÜGY"), f"K-{random.randint(10000,99999)}")
+            r.rule()
+            token = " HATÁROZAT: " if hu else " RULING: "
+            if token in body:
+                subject, decision = body.split(token, 1)
+                r.text(subject, 27, True).space(14)
+                r.rule()
+                r.text(tx("RULING:", "HATÁROZAT:"), 20, True).space(4)
+                r.text(decision, 29, True)
+            else:
+                r.text(body, 27, True)
+            r.space(12).text(tx("THIS DECISION IS UNAPPEALABLE.", "A DÖNTÉS ELLEN FELLEBBEZÉSNEK HELYE NINCS."), 17, False, "center")
+            meta = tx("Your formal dispute with existence", "Hivatalos panasz az egész létezés ellen")
+        else:
+            r.heading(tx("Temporal messaging archive", "Időn Túli Üzenetközpont"),
+                      tx("MESSAGE FROM THE FUTURE", "ÜZENET A JÖVŐBŐL"))
+            r.pair(tx("DELIVERY", "KÉZBESÍTÉS"), tx("EARLY", "KORAI"))
+            r.rule(True).space(8)
+            r.text(body, 29, True)
+            r.space(12).text(tx("REPLY NOT YET AVAILABLE", "VÁLASZ MÉG NEM LÉTEZIK"), 18)
+            meta = tx("A note that hasn't been written yet", "Üzenet, amit még nem írtak meg")
     elif kind == "certificate":
         title, description = choice(bank["certs"])
         name = re.sub(r"[\x00-\x1f]", "", str(data.get("name", "")).strip())[:56] or tx("THE BEARER", "AZ OKLEVÉL TULAJDONOSA")
@@ -344,7 +396,7 @@ def build(kind, data):
         pad_mm = int(data.get("pad_mm", 20))
     except (TypeError, ValueError):
         pad_mm = 20
-    footer_text = "" if kind == "horror" else tx("THERMAL CHAOS // NO REFUNDS", "THERMAL CHAOS // NINCS VISSZATÉRÍTÉS")
+    footer_text = "" if kind in ("horror", "psyops", "future") else tx("THERMAL CHAOS // NO REFUNDS", "THERMAL CHAOS // NINCS VISSZATÉRÍTÉS")
     return r.footer(footer_text, pad_mm), answer, meta
 
 def is_eligible_printer(name, port, driver=""):
