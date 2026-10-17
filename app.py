@@ -275,17 +275,23 @@ def make_photo(src, effect):
         im = im.convert("1", dither=Image.Dither.FLOYDSTEINBERG).convert("L")
     return im
 
-def print_wanted_poster(receipt, photo, lang, alias=None):
+def print_wanted_poster(receipt, photo, lang, alias=None, theme="tech"):
     """Compose an obviously fictional, newspaper-like 80 mm wanted poster."""
     copy = WANTED[lang]
-    record = wanted_profile(lang, alias)
+    record = wanted_profile(lang, alias, theme=theme)
 
     receipt.text(copy["agency"], 19, True, "center", gap=3)
     receipt.rule(True).space(3)
 
     # Proper dramatic black title bar with light reversed text.
-    label = copy["heading"]
+    label = record["title"]
     title_font = font(41, True)
+    for size in range(41, 22, -1):
+        title_font = font(size, True)
+        if receipt.d.textlength(label, font=title_font) <= WIDTH - 65:
+            break
+    else:
+        raise ValueError("Wanted poster headline is too long")
     bar_top = receipt.y
     bar_height = 69
     receipt.d.rectangle((receipt.margin, bar_top, receipt.right,
@@ -306,10 +312,11 @@ def print_wanted_poster(receipt, photo, lang, alias=None):
     receipt.photo(photo)
     receipt.text(copy["photo"], 17, False, "center", gap=3)
 
-    for field in ("alias", "charges", "seen", "reward", "note"):
-        receipt.space(7)
+    fields = ["alias", "charges", *record["extra_fields"], "seen", "reward", "note"]
+    for field in fields:
+        receipt.space(6)
         receipt.text(copy["labels"][field], 18, True, gap=1)
-        receipt.text(record[field], 25 if field != "note" else 21,
+        receipt.text(record[field], 25 if field in ("alias", "charges") else 21,
                      field in ("alias", "charges"), gap=2)
     receipt.space(12).rule(True)
     receipt.text(copy["footer"], 17, True, "center", gap=3)
@@ -389,7 +396,8 @@ def build(kind, data):
         effect = str(data.get("effect", "dither"))
         if effect == "mostwanted":
             photo = make_photo(data.get("image"), "mostwanted")
-            print_wanted_poster(r, photo, lang, data.get("wanted_alias"))
+            print_wanted_poster(r, photo, lang, data.get("wanted_alias"),
+                                str(data.get("wanted_theme", "tech")))
             meta = tx("Parody most-wanted mugshot poster",
                       "Paródia körözési poszter fekete-fehér fotóval")
         else:
