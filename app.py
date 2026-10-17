@@ -144,8 +144,9 @@ class Receipt:
         return self
 
     def footer(self, message="THERMAL CHAOS", pad_mm=20):
-        self.rule()
-        self.text(message, 17, False, "center", gap=2)
+        if message:
+            self.rule()
+            self.text(message, 17, False, "center", gap=2)
         # 203 DPI is about eight raster rows per millimetre.
         # This extra white area lands AFTER the last text and BEFORE the cut.
         self.y += int(max(12, min(36, pad_mm)) * 8)
@@ -285,7 +286,7 @@ def build(kind, data):
                else choice(["03:17", "02:04", "03:33", "ISMERETLEN", "NINCS JEL"]),
                19, True).rule(True)
         r.space(14).text(choice(bank["horror"]), 33, True)
-        r.space(22).text(tx("IT KNOWS YOU READ THIS.", "TUDJA, HOGY ELOLVASTAD."), 16, False, "center")
+        r.space(10)
         meta = tx("A very short nightmare", "Nagyon rövid rémálom")
     elif kind == "certificate":
         title, description = choice(bank["certs"])
@@ -340,7 +341,8 @@ def build(kind, data):
         pad_mm = int(data.get("pad_mm", 20))
     except (TypeError, ValueError):
         pad_mm = 20
-    return r.footer(tx("THERMAL CHAOS // NO REFUNDS", "THERMAL CHAOS // NINCS VISSZATÉRÍTÉS"), pad_mm), answer, meta
+    footer_text = "" if kind == "horror" else tx("THERMAL CHAOS // NO REFUNDS", "THERMAL CHAOS // NINCS VISSZATÉRÍTÉS")
+    return r.footer(footer_text, pad_mm), answer, meta
 
 def usb_printers():
     if os.name != "nt":
