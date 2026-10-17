@@ -123,7 +123,7 @@ class ThermalChaosTests(unittest.TestCase):
         # Regression: "charges" and "seen" were also used as heading keys,
         # so the poster dumped a repr of all the possible charges/locations.
         from unittest.mock import patch
-        from wanted_posters import WANTED
+        from wanted_posters import WANTED, WANTED_VARIATIONS
         real_text = Receipt.text
         image = Image.new("RGB", (80, 120), (100, 130, 160))
         stream = io.BytesIO()
@@ -144,12 +144,15 @@ class ThermalChaosTests(unittest.TestCase):
                 self.assertEqual(im.width, 576)
                 self.assertTrue(all(isinstance(value, str) for value in observed))
                 labels = WANTED[lang]["labels"]
-                self.assertEqual(set(labels), {"alias", "charges", "seen", "reward", "note"})
+                self.assertEqual(set(labels), {"alias", "charges", "seen", "reward", "note",
+                                               "marks", "behavior", "cover", "temperament"})
                 for name in ("alias", "charges", "seen", "reward", "note"):
                     self.assertEqual(observed.count(labels[name]), 1)
-                self.assertEqual(sum(value in WANTED[lang]["charges"]
+                self.assertEqual(sum(value in (WANTED[lang]["charges"] +
+                                         WANTED_VARIATIONS[lang]["tech"]["charges"])
                                      for value in observed), 1)
-                self.assertEqual(sum(value in WANTED[lang]["seen"]
+                self.assertEqual(sum(value in (WANTED[lang]["seen"] +
+                                         WANTED_VARIATIONS[lang]["tech"]["seen"])
                                      for value in observed), 1)
                 self.assertFalse(any(str(WANTED[lang]["charges"]) == value
                                      or str(WANTED[lang]["seen"]) == value
@@ -207,8 +210,102 @@ class ThermalChaosTests(unittest.TestCase):
             self.assertIn("CAPTAIN", custom["alias"])
             self.assertEqual(len(custom["case"]), 12)
             fallback = wanted_profile(lang, "   ", random.Random(4))
-            self.assertIn(fallback["alias"], WANTED[lang]["aliases"])
+            self.assertIn(fallback["alias"], WANTED[lang]["aliases"] +
+                          WANTED_VARIATIONS[lang]["tech"]["aliases"])
             self.assertTrue(fallback["charges"])
+
+    def test_wanted_expansion_has_substantial_curated_comedy(self):
+        from wanted_posters import WANTED_VARIATIONS, OPTIONAL_FIELDS
+        expected_keys = {"aliases", "charges", "seen", "rewards", "notes",
+                         "marks", "behavior", "cover", "temperament"}
+        for lang in ("en", "hu"):
+            package = WANTED_VARIATIONS[lang]
+            self.assertGreaterEqual(len(package["titles"]), 8)
+            for theme in ("shop", "tech"):
+                with self.subTest(lang=lang, theme=theme):
+                    pools = package[theme]
+                    self.assertEqual(set(pools), expected_keys)
+                    for name in pools:
+                        self.assertGreaterEqual(len(pools[name]), 9)
+                        self.assertEqual(len(pools[name]), len(set(pools[name])))
+            self.assertGreaterEqual(sum(map(len, package["shop"].values())), 190)
+        self.assertEqual(set(OPTIONAL_FIELDS),
+                         {"marks", "behavior", "cover", "temperament"})
+
+    def test_wanted_shop_theme_is_nontechnical_and_varied(self):
+        from wanted_posters import WANTED_VARIATIONS, wanted_profile
+        shop = WANTED_VARIATIONS["hu"]["shop"]
+        seen = set()
+        for seed in range(100):
+            profile = wanted_profile("hu", rng=random.Random(seed), theme="shop")
+            self.assertEqual(profile["theme"], "shop")
+            self.assertIn(profile["alias"], shop["aliases"])
+            self.assertIn(profile["charges"], shop["charges"])
+            self.assertIn(profile["seen"], shop["seen"])
+            self.assertIn(profile["reward"], shop["rewards"])
+            self.assertIn(profile["note"], shop["notes"])
+            self.assertEqual(len(profile["extra_fields"]), len(set(profile["extra_fields"])))
+            self.assertIn(len(profile["extra_fields"]), (2, 3))
+            self.assertTrue(all(key in profile for key in profile["extra_fields"]))
+            seen.add((profile["alias"], profile["charges"], profile["title"]))
+        self.assertGreater(len(seen), 95)
+        with self.assertRaises(ValueError):
+            wanted_profile("hu", theme="bogus")
+
+    def test_wanted_poster_themes_fit_actual_receipts(self):
+        from wanted_posters import WANTED_VARIATIONS
+        from unittest.mock import patch
+        import app as app_module
+        sample = Image.new("RGB", (130, 90), (176, 130, 110))
+        stream = io.BytesIO()
+        sample.save(stream, "PNG")
+        uri = "data:image/png;base64," + base64.b64encode(stream.getvalue()).decode("ascii")
+        for lang in ("en", "hu"):
+            for theme in ("shop", "tech", "surprise"):
+                for seed in range(3):
+                    with self.subTest(lang=lang, theme=theme, seed=seed):
+                        with patch.object(app_module.random, "randint",
+                                          side_effect=lambda a,b: random.Random(seed).randint(a,b)):
+                            receipt, _, _ = build("photo", {
+                                "lang": lang, "effect": "mostwanted",
+                                "wanted_theme": theme, "image": uri, "pad_mm": 20,
+                            })
+                        self.assertEqual(receipt.width, 576)
+                        self.assertLess(receipt.height, 5900)
+                        self.assertEqual(set(receipt.crop(
+                            (0, receipt.height-100, 576, receipt.height)).getdata()), {255})
+                        self.assertTrue(escpos_bytes(receipt).endswith(b"\x1dV\x00"))
+        for lang in ("en", "hu"):
+            for title in WANTED_VARIATIONS[lang]["titles"]:
+                with self.subTest(lang=lang, title=title):
+                    from wanted_posters import wanted_profile
+                    profile = wanted_profile(lang, rng=random.Random(3), theme="shop")
+                    profile["title"] = title
+                    with patch("app.wanted_profile", return_value=profile):
+                        receipt, _, _ = build("photo", {
+                            "lang": lang, "effect": "mostwanted",
+                            "wanted_theme": "shop", "image": uri
+                        })
+                    self.assertLess(receipt.height, 5900)
+
+    def test_wanted_photo_theme_and_reroll_visible_in_ui(self):
+        html = self.client.get("/").get_data(as_text=True)
+        self.assertIn('wanted_theme', html)
+        self.assertIn('wantedReroll', html)
+        self.assertIn('ÚJ VÁDAK', html)
+        self.assertIn('["shop",s.wantedThemes[1]]', html)
+
+    def test_invalid_wanted_theme_is_rejected(self):
+        pic = Image.new("RGB", (80, 110), (100, 140, 170))
+        stream = io.BytesIO()
+        pic.save(stream, "PNG")
+        uri = "data:image/png;base64," + base64.b64encode(stream.getvalue()).decode("ascii")
+        response = self.client.post("/api/generate", json={
+            "kind": "photo",
+            "data": {"lang": "hu", "effect": "mostwanted",
+                     "wanted_theme": "not-a-theme", "image": uri}
+        })
+        self.assertEqual(response.status_code, 400)
 
     def test_most_wanted_rejects_missing_image(self):
         response = self.client.post("/api/generate", json={
