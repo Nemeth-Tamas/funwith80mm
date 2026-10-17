@@ -150,3 +150,27 @@ unchanged. Both new buttons are eligible for Chaos Roulette.
 Tests cover all 92 authored paranormal reports, all four bingo themes in both
 languages, free-center placement, square uniqueness, long Hungarian text
 wrapping, 576-pixel image width, blank bottom feed and ESC/POS output.
+
+## Psychological Horror — The Memory Problem
+
+A dedicated **PSYCHO HORROR / PSZICHOHORROR** button adds **89 new original
+psychological-horror microstories in English and 89 in Hungarian** (**178 new
+entries**). These are separate from the existing PURE HORROR bank, which is
+untouched. Stories focus on memory, identity, family, recordings, unreliable
+spaces, surveillance and painfully plausible impossible details, not jump scares.
+
+The stories are intentionally short, generally two sentences. The receipt is
+minimally styled, without a playful footer to spoil the atmosphere; existing
+576-pixel image width, bitmap font weight, 12/20/30 mm selectable bottom feed,
+cutter settings, USB/network printing and previews are unchanged.
+**Chaos Roulette** can select the new mode as well.
+
+The content lives in `psychological_horror/en.json` and
+`psychological_horror/hu.json`. On startup, `psych_horror.py` validates
+completeness (at least 80 stories per language), duplicate identities,
+string lengths and Unicode. Tests render all **178 stories** through the
+actual receipt renderer and verify their ESC/POS output and white bottom feed.
+
+**Total authored content: 1,401 entries per language, 2,802 overall.**
+This counts each psychological horror microstory as one authored entry
+and excludes procedural bingo arrangements or Sudoku variations.
