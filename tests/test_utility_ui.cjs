@@ -30,7 +30,8 @@ test("thermal toolbox UI script parses and all mode labels stay aligned", () => 
 test("all utility form options and non-refundable-foglaló disclaimer exist", () => {
   for (const token of ["qr_type", "qr_value", "ssid", "wifi_password",
         "items", "sheet", "price_huf", "sale_kind", "sale_channel",
-        "customer", "part", "paid_huf", "payment_kind", "earnest_agreed"]) {
+        "customer", "part", "paid_huf", "payment_kind", "earnest_agreed",
+        "seller_address", "customer_contact", "delivery_deadline", "sale_channel", "copies"]) {
     assert.ok(script.includes(token), "Missing form: "+token);
   }
   assert.ok(script.includes("ÚJ VÁDAK"), "Must preserve wanted photo reroll");
