@@ -3,7 +3,7 @@ import io
 import unittest
 
 from PIL import Image
-from app import app, build, escpos_bytes, make_sudoku, Receipt
+from app import app, build, escpos_bytes, make_sudoku, Receipt, is_eligible_printer
 from content import BANK
 
 
@@ -57,6 +57,20 @@ class ThermalChaosTests(unittest.TestCase):
                 for c in (0, 3, 6):
                     self.assertEqual({solved[y][x] for y in range(r, r+3)
                                       for x in range(c, c+3)}, target)
+
+    def test_windows_usb_and_network_queues(self):
+        self.assertTrue(is_eligible_printer("Birch CP-Q1UN", "USB001", "Birch"))
+        self.assertTrue(is_eligible_printer("Birch CP-Q1UN", "IP_192.168.1.80", "Birch"))
+        self.assertTrue(is_eligible_printer("Shop Birch", "WSD-8e7b4c", "Receipt"))
+        self.assertTrue(is_eligible_printer(r"\\SHOP-PC\\BIRCH", "Ne00:", "Generic"))
+        self.assertFalse(is_eligible_printer("Microsoft Print to PDF", "PORTPROMPT:", "Microsoft Print To PDF"))
+        self.assertFalse(is_eligible_printer("OneNote", "Ne01:", "OneNote"))
+        self.assertFalse(is_eligible_printer("Fax", "SHRFAX:", "Fax"))
+
+    def test_text_is_one_bit_and_margin_unchanged(self):
+        im = Receipt().text("NYOMTATÓ TÚLÉLŐPRÓBA", 21).footer(pad_mm=20)
+        self.assertEqual(im.size[0], 576)
+        self.assertEqual(set(im.getdata()), {0, 255})
 
     def test_escpos_raster_and_cutter(self):
         im = Image.new("L", (576, 130), 255)
