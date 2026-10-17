@@ -16,6 +16,7 @@ from extra_library import EXTRA
 from chaos_games import GAMES, BINGO_THEMES, bingo_card
 from psych_horror import PSYCHOLOGICAL_HORROR
 from wanted_posters import WANTED, wanted_profile
+from utility_modes import UTILITY_KINDS, draw_utility
 from camera_workflow import CameraWorkflow
 
 ROOT = Path(__file__).resolve().parent
@@ -345,7 +346,9 @@ def build(kind, data, *, wanted_record=None):
     def tx(en, hungarian):
         return hungarian if hu else en
 
-    if kind == "insult":
+    if kind in UTILITY_KINDS:
+        meta = draw_utility(kind, data, r, lang)
+    elif kind == "insult":
         level = str(data.get("level", "mean")).lower()
         level = level if level in bank["insults"] else "mean"
         r.heading(tx("Personnel audit", "Személyzeti ellenőrzés"),
@@ -578,7 +581,8 @@ def build(kind, data, *, wanted_record=None):
         pad_mm = int(data.get("pad_mm", 20))
     except (TypeError, ValueError):
         pad_mm = 20
-    footer_text = "" if (kind in ("horror", "psychhorror", "psyops", "future") or
+    footer_text = "" if (kind in UTILITY_KINDS or
+                         kind in ("horror", "psychhorror", "psyops", "future") or
                          (kind == "photo" and data.get("effect") == "mostwanted")) else tx("THERMAL CHAOS // NO REFUNDS", "THERMAL CHAOS // NINCS VISSZATÉRÍTÉS")
     return r.footer(footer_text, pad_mm), answer, meta
 
