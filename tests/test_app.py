@@ -203,7 +203,7 @@ class ThermalChaosTests(unittest.TestCase):
         self.assertEqual(poster.size, (448, 548))
 
     def test_most_wanted_custom_alias_and_random_fallback(self):
-        from wanted_posters import WANTED, wanted_profile
+        from wanted_posters import WANTED, WANTED_VARIATIONS, wanted_profile
         for lang in ("en", "hu"):
             custom = wanted_profile(lang, "  CAPTAIN\\nCABLE  ", random.Random(4))
             self.assertNotIn("\n", custom["alias"])
