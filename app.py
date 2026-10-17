@@ -296,7 +296,7 @@ def print_wanted_poster(receipt, photo, lang, alias=None):
     receipt.y += bar_height + 13
 
     receipt.text(copy["file"], 18, True, "center", gap=2)
-    receipt.text("CASE " + record["case"], 23, True, "center").space(10)
+    receipt.text(copy["case_label"] + " " + record["case"], 23, True, "center").space(10)
 
     # Frame + image intentionally use the same cached, previewed bitmap.
     x = (WIDTH-photo.width)//2
@@ -560,7 +560,8 @@ def build(kind, data):
         pad_mm = int(data.get("pad_mm", 20))
     except (TypeError, ValueError):
         pad_mm = 20
-    footer_text = "" if kind in ("horror", "psychhorror", "psyops", "future") else tx("THERMAL CHAOS // NO REFUNDS", "THERMAL CHAOS // NINCS VISSZATÉRÍTÉS")
+    footer_text = "" if (kind in ("horror", "psychhorror", "psyops", "future") or
+                         (kind == "photo" and data.get("effect") == "mostwanted")) else tx("THERMAL CHAOS // NO REFUNDS", "THERMAL CHAOS // NINCS VISSZATÉRÍTÉS")
     return r.footer(footer_text, pad_mm), answer, meta
 
 def is_eligible_printer(name, port, driver=""):
