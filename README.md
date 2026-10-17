@@ -388,6 +388,56 @@ Nothing prints unless the operator presses Print.
   e.g. through the normal Billingo/invoicing setup and fiscal register.
   Do not represent this document alone as proof of all legal terms.
 
+### Signed parts-order / foglaló agreement (shop counter)
+
+Open **ALKATRÉSZ ELŐLEG / PARTS PAYMENT**, enter the real seller and
+**seller address**, customer name and (recommended) contact, specific
+part/model, order reference, gross agreed price and amount already
+received. Keep **two separately dated concepts**:
+
+- **Becsült beérkezés:** optional supplier/courier ETA, not a promise.
+- **Vállalt átadhatóság:** the agreed **latest date by which the part
+  will be available to the customer** (ISO YYYY-MM-DD); mandatory for
+  a foglaló agreement. A late supplier cannot erase that obligation.
+
+Choose **FOGLALÓ** *only* after explaining the mutual consequences and
+ensuring both parties expressly agree that the money serves to reinforce
+the contractual commitment (Ptk. 6:185). Tick the affirmative
+**earnest_agreed** checkbox to confirm this; it is never pre-checked.
+The *seller* is also at risk of having to return **double** the sum
+if the contractual failure is attributable to the seller. Check the
+formation channel accurately: **in shop** versus **distance/off-premises**,
+because consumer withdrawal rights differ and the contract cannot waive
+them. Standard separately procured batteries are **not automatically**
+customized made-to-order exemptions.
+
+Set **2 copies** (default for the signed agreement). One print job
+contains two **identical contract terms**, individually labeled
+**VEVŐ PÉLDÁNYA** and **CELLNET PÉLDÁNYA**, with the same order reference,
+amounts and date, and **both parties' signature lines on each copy**.
+The printer only cuts **at the end**; manually separate at
+**VÁGÁS ITT**. Have both parties read and sign **both** copies, give
+one to the buyer, retain one for Cellnet and **scan or otherwise save a
+lasting copy** because thermal print fades. Hand over the statutory tax
+document separately; this agreement does not replace it.
+
+The printed agreement explicitly records that **courier delay alone
+does not automatically terminate the contract**, and includes
+notice-of-delay and applicable Ptk. 6:220 and 45/2014 8/B rights.
+It does **not** claim to block a valid statutory withdrawal, late-
+performance claim or other consumer remedy. A customer's unsupported
+change of mind is different from a legally justified withdrawal; foglaló
+forfeiture hinges on the responsibility for an actual failed contract.
+Keep order communications, delivery tracking, and any agreed extension
+in writing. For a genuinely essential pickup date, do not imply that
+the statutory no-extra-deadline cancellation right disappears.
+
+**Legal review required before routine customer deployment.**
+This is a document generator and a useful signed evidence trail, not a
+guarantee that a term will be upheld in a particular dispute. Get the
+standard wording and any accounting/VAT receipt process reviewed by
+a Hungarian professional first.
+
 ### Primary Hungarian legal sources reviewed
 
 - [151/2003. (IX. 22.) Korm. rendelet](https://njt.jog.gov.hu/jogszabaly/2003-151-20-22):
