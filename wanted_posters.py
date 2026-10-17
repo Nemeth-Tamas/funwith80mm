@@ -3,8 +3,11 @@
 No real law-enforcement insignia, warrants, charges or personal information:
 all records are plainly whimsical parody for the 80mm printer.
 """
+import json
 import random
 import re
+import unicodedata
+from pathlib import Path
 
 WANTED = {
     "en": {
@@ -19,6 +22,10 @@ WANTED = {
             "seen": "LAST SEEN",
             "reward": "REWARD",
             "note": "FIELD NOTE",
+            "marks": "DISTINGUISHING MARK",
+            "behavior": "SUSPICIOUS BEHAVIOR",
+            "cover": "ALLEGED COVER STORY",
+            "temperament": "THREAT DISPOSITION",
         },
         "footer": "ABSURD FICTION // NOT A REAL WARRANT",
         "aliases": [
@@ -88,6 +95,10 @@ WANTED = {
             "seen": "UTOLJÁRA LÁTTÁK",
             "reward": "NYOMRAVEZETŐI DÍJ",
             "note": "HELYSZÍNI MEGJEGYZÉS",
+            "marks": "ISMERTETŐJEL",
+            "behavior": "GYANÚS VISELKEDÉS",
+            "cover": "FEDŐSZTORI",
+            "temperament": "VÉRMÉRSÉKLET",
         },
         "footer": "PARÓDIA // NEM VALÓDI KÖRÖZÉS",
         "aliases": [
@@ -151,18 +162,84 @@ WANTED = {
 }
 
 
-def wanted_profile(lang, alias=None, rng=None):
+POOLS = ("aliases", "charges", "seen", "rewards", "notes",
+         "marks", "behavior", "cover", "temperament")
+OPTIONAL_FIELDS = ("marks", "behavior", "cover", "temperament")
+THEMES = ("surprise", "shop", "tech")
+
+
+def load_wanted_variations():
+    """Validate all extra curated text at startup, including Unicode for Hungarian."""
+    path = Path(__file__).resolve().with_name("wanted_variations.json")
+    data = json.loads(path.read_text(encoding="utf-8"))
+    if set(data) != {"en", "hu"}:
+        raise ValueError("Wanted variations must include en and hu")
+    for lang, pack in data.items():
+        if set(pack) != {"titles", "shop", "tech"}:
+            raise ValueError(f"{lang}: invalid wanted sections")
+        for key, entries in [("titles", pack["titles"])] + [
+            (theme + "." + name, values)
+            for theme in ("shop", "tech")
+            for name, values in pack[theme].items()
+        ]:
+            if not isinstance(entries, list) or len(entries) < 9:
+                raise ValueError(f"{lang}.{key}: expected 9+ entries")
+            seen = set()
+            for item in entries:
+                if not isinstance(item, str) or not item.strip() or len(item) > 150:
+                    raise ValueError(f"{lang}.{key}: invalid text")
+                if item != item.strip() or unicodedata.normalize("NFC", item) != item:
+                    raise ValueError(f"{lang}.{key}: invalid whitespace/Unicode")
+                if any(unicodedata.category(ch) == "Cc" for ch in item):
+                    raise ValueError(f"{lang}.{key}: control character")
+                identity = "".join(ch for ch in item.casefold() if ch.isalnum())
+                if identity in seen:
+                    raise ValueError(f"{lang}.{key}: repeated entry")
+                seen.add(identity)
+        for theme in ("shop", "tech"):
+            if set(pack[theme]) != set(POOLS):
+                raise ValueError(f"{lang}.{theme}: missing content pools")
+    return data
+
+
+WANTED_VARIATIONS = load_wanted_variations()
+
+
+def wanted_profile(lang, alias=None, rng=None, theme="tech"):
+    """Build a compact all-string parody case with stable legacy call signature.
+
+    The default is the original technical flavor for older Python callers.
+    The web UI explicitly requests surprise/shop/tech via wanted_theme.
+    """
     if lang not in WANTED:
         raise ValueError("Unknown poster language")
+    if theme not in THEMES:
+        raise ValueError("Unknown wanted poster theme")
     rng = rng or random
+    selected_theme = rng.choice(("shop", "tech")) if theme == "surprise" else theme
     bank = WANTED[lang]
+    extras = WANTED_VARIATIONS[lang][selected_theme]
+
+    def pick(name, legacy_name):
+        items = extras[name]
+        if selected_theme == "tech":
+            items = bank[legacy_name] + items
+        return rng.choice(items)
+
     raw_alias = alias if isinstance(alias, str) else ""
     supplied = re.sub(r"[\x00-\x1f\x7f]", "", raw_alias).strip()[:48]
-    return {
+    result = {
         "case": f"MW-{rng.randint(1000, 9999)}-{rng.randint(1000, 9999)}",
-        "alias": supplied or rng.choice(bank["aliases"]),
-        "charges": rng.choice(bank["charges"]),
-        "seen": rng.choice(bank["seen"]),
-        "reward": rng.choice(bank["rewards"]),
-        "note": rng.choice(bank["notes"]),
+        "theme": selected_theme,
+        "title": rng.choice(WANTED_VARIATIONS[lang]["titles"]),
+        "alias": supplied or pick("aliases", "aliases"),
+        "charges": pick("charges", "charges"),
+        "seen": pick("seen", "seen"),
+        "reward": pick("rewards", "rewards"),
+        "note": pick("notes", "notes"),
     }
+    for field in OPTIONAL_FIELDS:
+        result[field] = rng.choice(extras[field])
+    # Keep all five classic fields; rotate 2-3 additional facts for variety.
+    result["extra_fields"] = rng.sample(OPTIONAL_FIELDS, rng.randint(2, 3))
+    return result
