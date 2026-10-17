@@ -234,8 +234,10 @@ are unchanged. No camera is activated.
 
 Double-click **`start_eagle_eye.bat`**, then open
 **http://127.0.0.1:8765/eagle-eye** in Chrome or Edge. If the regular app is
-already running, close its terminal first. Ordinary `start.bat` keeps camera
-mode disabled. The camera does not open on page load.
+already running, close its terminal first. Ordinary **`start.bat` always opens
+http://127.0.0.1:8765/** and forces camera mode off, even if an old terminal
+still has `THERMAL_CHAOS_CAMERA=1`. The separate camera launcher explicitly
+passes `--eagle-eye` to opt in. The camera does not open on page load.
 
 To run it in your own visible PowerShell window using the existing environment:
 
