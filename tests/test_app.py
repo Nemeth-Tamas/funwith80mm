@@ -7,6 +7,7 @@ from app import app, build, escpos_bytes, make_sudoku, Receipt, is_eligible_prin
 from content import BANK
 from extra_library import EXTRA, KEYS
 from chaos_games import GAMES, BINGO_THEMES, FREE_SPACE, bingo_card
+from psych_horror import PSYCHOLOGICAL_HORROR, load_psychological_horror
 import random
 
 
@@ -116,6 +117,50 @@ class ThermalChaosTests(unittest.TestCase):
             "kind": "bingo", "data": {"lang": "hu", "theme": "invalid"}
         })
         self.assertEqual(response.status_code, 400)
+
+    def test_psychological_horror_content_validation(self):
+        loaded = load_psychological_horror()
+        for lang in ("en", "hu"):
+            with self.subTest(lang=lang):
+                self.assertEqual(len(loaded[lang]), 89)
+                self.assertEqual(len(set(loaded[lang])), len(loaded[lang]))
+                self.assertTrue(all(45 <= len(story) <= 280 for story in loaded[lang]))
+
+    def test_psychological_horror_api_bilingual(self):
+        for lang in ("en", "hu"):
+            response = self.client.post("/api/generate", json={
+                "kind": "psychhorror", "data": {"lang": lang, "pad_mm": 20}
+            })
+            self.assertEqual(response.status_code, 200, response.get_json())
+            result = response.get_json()
+            image = Image.open(io.BytesIO(base64.b64decode(result["image"].split(",", 1)[1])))
+            self.assertEqual(image.width, 576)
+            self.assertLess(image.height, 5900)
+            self.assertEqual(image.getpixel((20, image.height - 30)), 255)
+            self.assertTrue(escpos_bytes(image).endswith(b"\x1dV\x00"))
+            self.assertIsNone(result["answer"])
+
+    def test_each_psychological_horror_story_renders(self):
+        from unittest.mock import patch
+        for lang in ("en", "hu"):
+            for index, story in enumerate(PSYCHOLOGICAL_HORROR[lang]):
+                with self.subTest(lang=lang, story=index):
+                    with patch("app.choice", return_value=story):
+                        receipt, answer, description = build("psychhorror", {"lang": lang})
+                    self.assertEqual(receipt.width, 576)
+                    self.assertGreater(receipt.height, 200)
+                    self.assertLess(receipt.height, 5900)
+                    self.assertIsNone(answer)
+                    self.assertTrue(escpos_bytes(receipt, cut=True).endswith(b"\x1dV\x00"))
+                    last_rows = receipt.crop((0, receipt.height-90, 576, receipt.height))
+                    self.assertEqual(set(last_rows.getdata()), {255})
+
+    def test_psychological_horror_ui_is_available(self):
+        html = self.client.get("/").get_data(as_text=True)
+        self.assertIn('{id:"psychhorror",emoji:', html)
+        self.assertIn("PSYCHO HORROR", html)
+        self.assertIn("PSZICHOHORROR", html)
+        self.assertIn('"mystery","horror","psychhorror"', html)
 
     def test_photo_in_both_languages(self):
         pic = Image.new("RGB", (70, 70), (121, 92, 44))
