@@ -201,3 +201,35 @@ No dependency changes.
 The content is maintained in `wanted_posters.py`. Tests cover poster generation
 in both languages, optional aliases, monochrome raster, preview dimensions,
 ESC/POS encoding and compatibility with the four original photo effects.
+
+
+## Expanded Most Wanted chaos (2026-10-17)
+
+The Photo > **MOST WANTED / KÖRÖZÉS** effect now has a selectable humor
+theme: **Surprise / Lepj meg**, **Everyday & shop / Bolti-hétköznapi**, and
+**Geek & workshop / Műhely-kocka**. Hungarian defaults to **shop** in the
+browser, so its jokes are about pogácsa theft, suspiciously friendly
+customers, mysterious biscuits, fake alibis, and excessive confidence—not
+technology. English defaults to Surprise. The Python API's omitted-theme
+default remains `tech` for compatibility with older callers.
+
+Ten alternative wanted headlines in each language are automatically fitted
+to the 80 mm title bar. In addition to alias, charge, last seen, reward and
+note, every poster shows **two or three rotating extras** from distinguishing
+marks, suspicious behavior, cover story and temperament. The new
+`wanted_variations.json` contains hundreds of curated short lines in both
+languages, validated by `wanted_posters.py` at startup. It adds **248
+original shop jokes and 99 extra tech jokes in Hungarian**, plus **203 shop
+jokes and 99 tech jokes in English**, excluding the ten headlines per
+language. Original joke pools remain available too.
+
+The dedicated **ÚJ VÁDAK / NEW ACCUSATIONS** control rerolls the fake case
+and jokes while reusing the **same selected photo**; a new preview must
+still be consciously printed through the regular printer button. Custom
+alias overrides remain supported. The original photo effects, 576-pixel
+Pillow/ESC-POS renderer, cutter, bottom feed and Windows USB/network queues
+are unchanged. No camera is activated.
+
+The follow-up **Eagle Eye PTZ camera souvenir prank** is recorded for later
+in [TODO_EAGLE_EYE_SHOP_WANTED.md](TODO_EAGLE_EYE_SHOP_WANTED.md). It is
+a specification, not currently deployed.
