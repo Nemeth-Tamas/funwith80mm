@@ -1,6 +1,16 @@
 # TODO — Eagle Eye Shop Most Wanted (future build prompt)
 
-**Status:** Planned / **NOT IMPLEMENTED**. Do not enable or connect a camera until the user explicitly asks to build this feature.
+**Status (2026-10-17): USB first version implemented at the owner's request.**
+Start `start_eagle_eye.bat` for the opt-in local booth; regular startup remains
+disabled. Uses browser USB video, manual aim, a one-shot countdown, the existing
+Most Wanted renderer and a separate print click. No tracking or motor control.
+The original brief below is retained for context. Network PTZ is deferred.
+
+Follow-up: adjustable pre-dither photo shadow lift (default 1.6×) preserves the
+same photo and jokes; optional live hardware exposure controls appear only when
+the browser exposes capabilities and readback confirms changes. Startup now
+prints the project folder and correct URL; README includes visible PowerShell
+launch/stop commands.
 
 ## Context
 
@@ -20,16 +30,20 @@ The existing PHOTO > MOST WANTED mode has Hungarian shop/general/tech humor, ran
 
 ## Acceptance checklist
 
-- [ ] Confirm the exact Eagle Eye/EagleCast camera model, stream and PTZ API.
-- [ ] Deliberate operator arm + participant awareness/consent + one-shot capture/disarm.
-- [ ] No face identification, automatic face archives, or always-on captures.
-- [ ] Operator-only preview: **Nyomtatás / Új szöveg / Újrafotózás / Mégse**.
-- [ ] Hungarian non-tech Most Wanted default. Existing `wanted_profile` pools reusable.
-- [ ] Local memory-only snapshots, cleanup on cancel and timeout, safe error handling.
-- [ ] Preserve USB/network Birch output, 576 px, cutter, preview, padding.
-- [ ] Mocked offline tests proving camera events cannot trigger print.
-- [ ] README/setup, UI instructions and GitHub Actions green.
+- [x] Confirm EagleEye IV USB (`095d:9204`), currently USB-connected. EagleCast uses Pi REST PTZ + multicast, not assumed for USB.
+- [x] Deliberate operator arm + participant awareness/consent + one-shot capture/disarm.
+- [x] No face identification, automatic face archives, or always-on captures.
+- [x] Operator-only preview: **Nyomtatás / Új szöveg / Újrafotózás / Mégse**.
+- [x] Hungarian non-tech Most Wanted default, using the existing renderer/profile pools.
+- [x] Local memory-only snapshots, cancel + timer cleanup, error handling.
+- [x] Preserve Windows USB/network output, 576 px, cutter, preview, padding.
+- [x] Mocked offline server and browser tests proving camera events cannot print.
+- [x] README/setup and UI instructions; GitHub Actions updated for both test suites.
+- [ ] Real participant photo and physical paper check by the operator.
+- [ ] Remote GitHub Actions run green after these changes are pushed.
 
 ## Not part of this TODO
 
-Nothing here authorizes implementing or activating surveillance today. This is a saved future implementation brief; the current project only generates posters from operator-uploaded photos.
+The owner authorized building the USB souvenir booth on 2026-10-17. That does not
+authorize unattended surveillance or automatic customer photography. The regular
+photo-upload mode remains available and camera mode remains opt-in.

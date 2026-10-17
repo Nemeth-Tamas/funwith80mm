@@ -16,6 +16,7 @@ from extra_library import EXTRA
 from chaos_games import GAMES, BINGO_THEMES, bingo_card
 from psych_horror import PSYCHOLOGICAL_HORROR
 from wanted_posters import WANTED, wanted_profile
+from camera_workflow import CameraWorkflow
 
 ROOT = Path(__file__).resolve().parent
 app = Flask(__name__, static_folder=str(ROOT / "static"))
@@ -243,7 +244,7 @@ def make_sudoku(level):
         grid[i//9][i%9] = 0
     return solved, grid
 
-def make_photo(src, effect):
+def make_photo(src, effect, gamma=1.0):
     if not isinstance(src, str) or "," not in src:
         raise ValueError("Choose a picture first")
     raw = base64.b64decode(src.split(",", 1)[1], validate=True)
@@ -265,6 +266,15 @@ def make_photo(src, effect):
         im = ImageOps.autocontrast(im.convert("L"))
     except (UnidentifiedImageError, OSError, ValueError) as e:
         raise ValueError("That image format is not supported") from e
+    try:
+        gamma = float(gamma)
+    except (ValueError, TypeError):
+        raise ValueError("Invalid photo brightness") from None
+    if not 1.0 <= gamma <= 2.5:
+        raise ValueError("Photo brightness must be between 1 and 2.5")
+    if gamma != 1.0:
+        # Lift shadow/midtone detail before dithering; white and black stay fixed.
+        im = im.point([round(255 * (p / 255) ** (1 / gamma)) for p in range(256)])
     if effect == "negative":
         im = ImageOps.invert(im)
     if effect == "threshold":
@@ -275,10 +285,10 @@ def make_photo(src, effect):
         im = im.convert("1", dither=Image.Dither.FLOYDSTEINBERG).convert("L")
     return im
 
-def print_wanted_poster(receipt, photo, lang, alias=None, theme="tech"):
+def print_wanted_poster(receipt, photo, lang, alias=None, theme="tech", record=None):
     """Compose an obviously fictional, newspaper-like 80 mm wanted poster."""
     copy = WANTED[lang]
-    record = wanted_profile(lang, alias, theme=theme)
+    record = record if record is not None else wanted_profile(lang, alias, theme=theme)
 
     receipt.text(copy["agency"], 19, True, "center", gap=3)
     receipt.rule(True).space(3)
@@ -323,7 +333,7 @@ def print_wanted_poster(receipt, photo, lang, alias=None, theme="tech"):
     return receipt
 
 
-def build(kind, data):
+def build(kind, data, *, wanted_record=None):
     if not isinstance(data, dict):
         raise ValueError("Invalid options")
     lang = "hu" if data.get("lang") == "hu" else "en"
@@ -395,9 +405,9 @@ def build(kind, data):
     elif kind == "photo":
         effect = str(data.get("effect", "dither"))
         if effect == "mostwanted":
-            photo = make_photo(data.get("image"), "mostwanted")
+            photo = make_photo(data.get("image"), "mostwanted", data.get("photo_gamma", 1.0))
             print_wanted_poster(r, photo, lang, data.get("wanted_alias"),
-                                str(data.get("wanted_theme", "tech")))
+                                str(data.get("wanted_theme", "tech")), record=wanted_record)
             meta = tx("Parody most-wanted mugshot poster",
                       "Paródia körözési poszter fekete-fehér fotóval")
         else:
@@ -702,7 +712,25 @@ def do_print():
     except Exception as e:
         return jsonify({"error":str(e)}), 500
 
+app.config["EAGLE_EYE_ENABLED"] = os.environ.get("THERMAL_CHAOS_CAMERA") == "1"
+camera_workflow = CameraWorkflow(
+    lambda: app.config["EAGLE_EYE_ENABLED"],
+    lambda kind, data, record=None: build(kind, data, wanted_record=record),
+    lambda printer, image, cut: send_to_windows_printer(printer, image, cut),
+)
+app.register_blueprint(camera_workflow.blueprint)
+
+@app.get("/eagle-eye")
+def eagle_eye():
+    response = send_from_directory(str(ROOT / "static"), "eagle-eye.html")
+    response.headers["Cache-Control"] = "no-store"
+    response.headers["Content-Security-Policy"] = "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; media-src 'self' blob:; connect-src 'self'; frame-ancestors 'none'"
+    response.headers["Permissions-Policy"] = 'camera=(self), microphone=(), geolocation=()'
+    return response
+
 if __name__ == "__main__":
-    print("\nTHERMAL CHAOS - open http://127.0.0.1:8765")
+    page = "/eagle-eye" if app.config["EAGLE_EYE_ENABLED"] else ""
+    print(f"\nTHERMAL CHAOS - open http://127.0.0.1:8765{page}")
+    print(f"Project: {ROOT}")
     print("Windows-installed USB or network receipt printers. Press Ctrl+C to stop.\n")
     app.run(host="127.0.0.1",port=8765,debug=False,threaded=True)

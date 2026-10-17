@@ -230,6 +230,94 @@ alias overrides remain supported. The original photo effects, 576-pixel
 Pillow/ESC-POS renderer, cutter, bottom feed and Windows USB/network queues
 are unchanged. No camera is activated.
 
-The follow-up **Eagle Eye PTZ camera souvenir prank** is recorded for later
-in [TODO_EAGLE_EYE_SHOP_WANTED.md](TODO_EAGLE_EYE_SHOP_WANTED.md). It is
-a specification, not currently deployed.
+## EagleEye IV USB: the small shop photo booth
+
+Double-click **`start_eagle_eye.bat`**, then open
+**http://127.0.0.1:8765/eagle-eye** in Chrome or Edge. If the regular app is
+already running, close its terminal first. Ordinary `start.bat` keeps camera
+mode disabled. The camera does not open on page load.
+
+To run it in your own visible PowerShell window using the existing environment:
+
+```powershell
+cd "C:\Users\User\Desktop\cuccli\funwith80mm"
+$env:THERMAL_CHAOS_CAMERA = "1"
+.\.venv\Scripts\python.exe app.py
+```
+
+Keep this window open; **Ctrl+C** stops the server. Startup prints the project
+folder and camera page URL. Open http://127.0.0.1:8765/eagle-eye in Chrome/Edge.
+
+1. Click **USB-kamerák keresése**, and select **Polycom EagleEye IV USB Camera**.
+   Before camera permission, the browser may hide names or offer only its default
+   camera. Select it, then verify the active name and live picture after arming.
+   If it is the wrong device, cancel, select EagleEye from the now named list and
+   arm again. Close other camera applications if USB video is busy.
+2. Tell the participant about the souvenir, get their agreement, and manually
+   aim at them using the physical remote if needed. Confirm both checkboxes,
+   then click **Élesítés / Következő áldozat** and allow camera access. No audio
+   permission is requested. A surveillance sign does not replace agreement.
+3. Check the live picture: one consenting participant, face inside the portrait
+   guide, adequate light. Confirm the picture check and click **Fotózás**.
+   A three-second countdown takes one frame, then releases the USB camera.
+   A **Kamera expozíciója** slider appears only if the browser exposes a usable
+   exposure range and mode. Changes are checked against camera readback; unsupported
+   devices show an explanation. Longer manual exposures can blur moving subjects.
+4. Review the frozen, Hungarian **shop/everyday** parody poster. **Új szöveg**
+   keeps the photo and rerolls the jokes. Optional alias and 12/20/30 mm bottom
+   margin changes take effect with that button. **Újrafotózás** discards the old
+   photo and requires another deliberate consent/arm step.
+   **Fotó világosítása** beside the poster lifts shadows before black/white
+   dithering (default 1.6×; range 1.0–2.5). Releasing its slider refreshes the
+   exact cached poster with the **same photo and jokes**, without extending
+   expiry or printing. Pending alias/margin edits must first be applied with
+   **Új szöveg**. This changes the photo raster only, not the text or borders.
+5. Choose the installed Birch queue (USB001 at this workstation), set the cutter,
+   and click **Nyomtatás**. Only this separate click prints the exact cached
+   576-pixel preview. The app clears the photo after Windows accepts the job;
+   Windows acceptance does not prove that paper emerged.
+
+**Mégse / Azonnali kikapcsolás** stops the camera and clears the photo and poster.
+Arming expires after two minutes. Photos and posters expire after five minutes
+from capture, even without further requests; rerolling does not extend this.
+Leaving a live-camera tab stops it. Closing the page attempts immediate server
+cleanup, with expiry as a fallback. Images stay in browser/server memory, never
+in the general one-hour receipt cache or application files. The Windows spooler
+and printer manage their own job data. After a printer error, check the queue
+and paper before clicking again, because a partial job may have been accepted.
+
+This deliberately small first version uses **USB browser video and manual aim**.
+It does not identify people, detect/track faces, move PTZ motors, record video,
+contact network camera services, or print on a camera event. Multiple people
+must be handled by the operator: cancel and reframe. Very dark/bright frames
+are rejected; this is a basic exposure check, not face detection.
+
+Connection research used the owner's EagleEye IV USB handover (VID:PID
+`095d:9204`), the connected DirectShow device name, and the sibling EagleCast
+project. EagleCast's Pi REST PTZ/multicast system is a different network path,
+so this USB booth does not assume RTSP/ONVIF or call the Pi. Camera selection
+and lifecycle use the standard browser [getUserMedia API](https://developer.mozilla.org/en-US/docs/Web/API/MediaDevices/getUserMedia).
+The app still binds to loopback only; camera API requests reject remote clients,
+foreign Host/Origin values and cross-site requests. No extra Python packages
+or camera firmware changes are needed.
+
+The booth itself uses external JavaScript/CSS compatible with its CSP. Warnings
+pointing to `content.js` may come from an extension trying to insert inline code;
+check that source URL or use a browser profile without that extension. The app
+does not whitelist unknown injected code to suppress those warnings. Browser
+exposure controls follow the [Image Capture specification](https://www.w3.org/TR/image-capture/)
+and depend on the camera driver and browser.
+
+Offline checks (no camera or printer required):
+
+```powershell
+.\.venv\Scripts\python.exe -m unittest discover -s tests -v
+node --test tests/test_camera_ui.cjs
+```
+
+Python tests cover consent, one-shot sessions, expiry, frozen-image printing,
+reroll invalidation, printer failure and local access. The dependency-free Node
+tests cover fake USB tracks, countdown cancellation, late camera permissions,
+disconnects, lighting, retakes, unload cleanup and deliberate printing. CI runs
+both on pushes to master and pull requests. A real photo and paper check still
+need an operator at the booth.
