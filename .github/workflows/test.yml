@@ -20,4 +20,4 @@ jobs:
         with:
           node-version: '22'
       - name: Test camera browser workflow (mocked devices and printer)
-        run: node --test tests/test_camera_ui.cjs
+        run: node --test tests/test_camera_ui.cjs tests/test_utility_ui.cjs
