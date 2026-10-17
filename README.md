@@ -118,3 +118,35 @@ continue to work.
 
 The tests validate and render all 300 new entries through the actual
 576-pixel raster receipt pipeline; run `python -m unittest discover -s tests -v`.
+
+
+## Paranormal Investigation Bureau and Thermal Bingo
+
+Two more bilingual, fully offline buttons are included in the existing UI:
+
+- **Paranormal Investigation Bureau / Paranormális Nyomozóiroda**:
+  **46 authored case reports per language**, each pairing a suspicious observation
+  with an unexpectedly mundane (and usually ridiculous) investigation result.
+  Reports have an incident ID, a finding and a formal case-closed line.
+- **Thermal Bingo / Thermal Bingó**:
+  real **5×5 monochrome, printable bingo cards**, with **24 distinct randomized
+  event squares and a free center square**. Four independently authored event
+  pools are selectable in both languages: **IT repair, customers, household
+  chaos, and cosmic incidents**, with **48 unique squares per theme and language**.
+  Print one card and mark the squares by hand as things happen; five in a line
+  wins. Generating another card changes the arrangement and event selection.
+
+This brings **238 additional authored items per language** (46 reports + 192
+bingo prompts), or **476 new items across both languages**, above the existing
+content libraries. **The total is now 1,312 entries per language, 2,624 overall**,
+counting individual bingo prompts rather than the countless possible cards.
+
+Content lives in `new_modes/en.json` and `new_modes/hu.json`, checked at
+startup by `chaos_games.py`. The new rendering integrates with the existing
+preview-first pipeline, image cache, 576-pixel ESC/POS raster encoder and Windows
+USB/network printer picker. The bottom padding and cutter commands remain
+unchanged. Both new buttons are eligible for Chaos Roulette.
+
+Tests cover all 92 authored paranormal reports, all four bingo themes in both
+languages, free-center placement, square uniqueness, long Hungarian text
+wrapping, 576-pixel image width, blank bottom feed and ESC/POS output.
