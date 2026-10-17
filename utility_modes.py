@@ -439,7 +439,7 @@ def render_parts_agreement(r, info):
                 "megerősítésére. Teljesítéskor a vételárba beszámít. "
                 "A vevő felelőssége miatti meghiúsuláskor elvész; "
                 "eladói felelősségnél kétszeresen jár vissza; "
-                "ha egyik vagy mindkét fél felelős, visszajár. "
+                "ha egyik fél sem, vagy mindkét fél felelős, visszajár. "
                 "A túlzott foglalót a bíróság mérsékelheti."
             ), 17)
             section("4. ÁTVÉTEL, VISSZALÉPÉS", (
