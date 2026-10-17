@@ -82,8 +82,7 @@ class Receipt:
                     x = max(self.margin, (WIDTH - w) / 2)
                 elif align == "right":
                     x = self.right - w
-                self.d.text((int(x), self.y), line, fill=0, font=f,
-                            stroke_width=1, stroke_fill=0)
+                self.d.text((int(x), self.y), line, fill=0, font=f)
                 self.y += self.height(f) + gap
         return self
 
@@ -105,11 +104,9 @@ class Receipt:
 
     def pair(self, left, right):
         f = font(25, False, True)
-        self.d.text((self.margin, self.y), str(left)[:21], font=f, fill=0,
-                    stroke_width=1, stroke_fill=0)
+        self.d.text((self.margin, self.y), str(left)[:21], font=f, fill=0)
         rw = self.d.textlength(str(right), font=f)
-        self.d.text((self.right-rw, self.y), str(right), font=f, fill=0,
-                    stroke_width=1, stroke_fill=0)
+        self.d.text((self.right-rw, self.y), str(right), font=f, fill=0)
         self.y += 39
         return self
 
