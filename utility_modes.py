@@ -220,6 +220,19 @@ def _item(r, value, checkbox=True):
     r.y = max(r.y + 10, start + 48)
 
 
+def _multiline(data, name, limit, required=False):
+    value = data.get(name, "")
+    if not isinstance(value, str):
+        raise ValueError(f"{name}: text required")
+    value = value.replace("\r\n", "\n").replace("\r", "\n")
+    value = re.sub(r"[\x00-\x09\x0b-\x1f\x7f]", " ", value).strip()
+    if len(value) > limit:
+        raise ValueError(f"{name}: too long (max {limit})")
+    if required and not value:
+        raise ValueError(f"{name}: required")
+    return value
+
+
 def _wifi_escape(value):
     # Android/iOS Wi-Fi QR field escaping; backslash must be FIRST.
     return (value.replace("\\", "\\\\").replace(";", "\\;")
@@ -331,11 +344,9 @@ def draw_utility(kind, data, r, lang):
 
     if kind == "checklist":
         title = _value(data, "title", 76) or tx("TODAY'S CHECKLIST", "MAI ELLENŐRZŐLISTA")
-        raw = _value(data, "items", 2200, required=True)
+        raw = _multiline(data, "items", 2200, required=True)
         lines = [re.sub(r"^(?:\s*[-*•]|\s*\[\s*\]|\s*\d+[.)])\s*", "", x).strip()
-                 for x in raw.split(" | ")] if "|" in raw and "\n" not in str(data.get("items","")) else [
-                 re.sub(r"^(?:\s*[-*•]|\s*\[\s*\]|\s*\d+[.)])\s*", "", x).strip()
-                 for x in str(data.get("items", "")).splitlines()]
+                 for x in raw.splitlines()]
         # Keep exact original newlines for checklists; don't let arbitrary text
         # inject 1000 blank rows or overflow the receipt canvas.
         lines = [x for x in lines if x]
@@ -369,8 +380,8 @@ def draw_utility(kind, data, r, lang):
         topic = data.get("sheet", "subnet")
         if topic == "custom":
             title = _value(data, "title", 70) or tx("MY CHEAT SHEET", "SAJÁT PUSKA")
-            raw = _value(data, "items", 2000, required=True)
-            lines = [x.strip() for x in str(data.get("items", "")).splitlines() if x.strip()]
+            raw = _multiline(data, "items", 2000, required=True)
+            lines = [x.strip() for x in raw.splitlines() if x.strip()]
             if not 1 <= len(lines) <= 30 or any(len(x) > 140 for x in lines):
                 raise ValueError("Cheat sheet needs 1–30 lines up to 140 characters each")
         elif topic in CHEATSHEETS[lang]:
