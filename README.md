@@ -174,3 +174,30 @@ actual receipt renderer and verify their ESC/POS output and white bottom feed.
 **Total authored content: 1,401 entries per language, 2,802 overall.**
 This counts each psychological horror microstory as one authored entry
 and excludes procedural bingo arrangements or Sudoku variations.
+
+
+## Most Wanted Photo Posters
+
+The existing **Thermal Photo / Hőnyomat** mode now includes a fifth effect,
+**MOST WANTED poster / KÖRÖZÉS poszter**, alongside Classic dither, Hard B&W,
+Newsprint and Inverted. Upload a normal picture, choose the effect, optionally
+enter a suspect alias, generate the preview and print on the installed
+Windows USB or network receipt printer.
+
+The mock wanted notice is prominently branded **THERMAL CHAOS // PARODY**,
+with an entirely fictional case number, an actual center-cropped and
+Floyd-Steinberg dithered 448 × 548 pixel mugshot, a thick black title bar,
+an outlined portrait, and randomized absurd allegations, aliases, sighting
+locations, rewards and field notes in natural English or Hungarian.
+This is a joke poster, **not** a real police document or an FBI seal.
+
+A blank suspect alias generates a random fictional one; the custom alias
+is trimmed to 48 characters, and control characters are removed.
+The poster is rasterized to the same 576-pixel width, cached for an exact
+print preview, and sent through the unchanged RAW ESC/POS printer path.
+The bottom margin selector and optional cutter still work exactly as before.
+No dependency changes.
+
+The content is maintained in `wanted_posters.py`. Tests cover poster generation
+in both languages, optional aliases, monochrome raster, preview dimensions,
+ESC/POS encoding and compatibility with the four original photo effects.
