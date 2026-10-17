@@ -1,175 +1,239 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>Thermal Chaos // 80mm edition</title>
-  <style>
-  :root{font:16px/1.5 system-ui,Segoe UI,sans-serif;color:#e9e9f4;background:#0b0c13}
-  *{box-sizing:border-box}body{margin:0}header,main{max-width:1120px;margin:auto;padding:20px}
-  header{display:flex;justify-content:space-between;align-items:center;gap:12px}
-  h1{margin:0;font-size:clamp(1.7rem,5vw,3rem);letter-spacing:-.06em}
-  header p{color:#abaac0;margin:0} .signal{background:#243b32;border-radius:20px;padding:8px 13px;font-size:.8rem;color:#adf2c4}
-  .layout{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(300px,.8fr);gap:22px}
-  .panel{background:#171926;border:1px solid #2a2b40;border-radius:18px;padding:22px}
-  .modes{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
-  button,select,input{font:inherit}button{background:#242639;color:#e9e9f4;border:1px solid #44445d;border-radius:11px;padding:12px;cursor:pointer}
-  button:hover{border-color:#9e8aff}button.selected{background:#4c397f;border-color:#b7a0ff}
-  button.primary{background:#bb9cff;color:#141023;border:none;font-weight:800}button:disabled{opacity:.45;cursor:default}
-  label{display:block;color:#cccbe0;font-size:.9rem;margin:14px 0 6px}
-  input,select{display:block;width:100%;background:#10111c;border:1px solid #484861;color:#fff;border-radius:10px;padding:11px}
-  input[type=checkbox]{width:auto;display:inline}
-  #extra{padding-top:4px} .actions{display:flex;gap:8px;margin-top:18px;flex-wrap:wrap}.actions>*{flex:1}
-  .preview{display:grid;justify-content:center;align-items:start;background:#0e101b;border-radius:12px;min-height:160px;padding:14px}
-  .preview img{max-width:100%;width:288px;height:auto;image-rendering:auto;box-shadow:0 8px 35px #0009}
-  #status{min-height:24px;color:#cec4ec;font-size:.9rem;margin:15px 0 0}
-  .hint{font-size:.83rem;color:#a5a4b9}.check{display:flex;gap:10px;align-items:center;margin:8px 0}
-  .tag{color:#c2b2ff;font-weight:800;letter-spacing:.12em;font-size:.75rem}
-  @media(max-width:800px){.layout{grid-template-columns:1fr}header{align-items:start}.panel{padding:15px}}
-  </style>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>THERMAL CHAOS // 80mm</title>
+<style>
+:root{font:16px/1.45 system-ui,"Segoe UI",sans-serif;color:#f6f1ff;background:#080811}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(ellipse 85% 450px at 30% 0%,#302152 0%,transparent 75%),#080811}
+header,main{max-width:1130px;margin:auto;padding:21px}
+header{padding-top:36px;padding-bottom:5px;display:flex;align-items:flex-start;justify-content:space-between;gap:15px;flex-wrap:wrap}
+h1{font-size:clamp(2.2rem,5.8vw,4.6rem);margin:0;line-height:1;letter-spacing:-.075em}
+header p{margin:10px 0;color:#c2b5dd}.kicker{font-weight:850;color:#eebafa;letter-spacing:.19em;font-size:.73rem}
+.locale{min-width:166px;background:#151322;border:1px solid #4c3c6c;border-radius:14px;padding:10px}
+.locale label{margin:0 0 5px;font-size:.7rem;color:#bfb0da;display:block}
+main{padding-top:20px}.layout{display:grid;grid-template-columns:minmax(0,1.18fr) minmax(290px,.82fr);gap:20px}
+.panel{background:#151421;border:1px solid #393049;border-radius:18px;padding:20px;box-shadow:0 12px 28px #05050a55}
+h2{font-size:1.12rem;letter-spacing:-.02em;margin:0 0 15px}.modes{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px}
+button,select,input{font:inherit}
+button{color:#ede8ff;background:#242036;border:1px solid #504167;border-radius:12px;cursor:pointer;transition:background .14s,transform .14s}
+button:hover{background:#382d53;border-color:#b78bfd}button:active{transform:scale(.98)}
+.mode{padding:13px 9px;min-height:91px;display:flex;flex-direction:column;gap:5px;text-align:left;justify-content:center}
+.mode .emoji{font-size:1.38rem}.mode .name{font-size:.85rem;font-weight:750;line-height:1.15}
+.mode.selected{background:#68419d;border-color:#dcb7ff;box-shadow:inset 0 0 0 1px #e6c8ff}
+label{display:block;margin:14px 0 5px;font-size:.83rem;font-weight:600;color:#cfbfeb}
+select,input:not([type=checkbox]){width:100%;padding:10px 12px;border-radius:10px;background:#0d0d18;color:#f6f1ff;border:1px solid #504365;min-width:0}
+input[type=file]{font-size:.85rem}
+.controls{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:3px}
+.check{display:flex;gap:9px;align-items:center;font-weight:400}
+.check input{accent-color:#bb92fc}
+.actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:18px}
+.actions button{min-height:50px;padding:11px 10px;font-weight:750}.print{background:#dbabff;color:#21112e;border-color:transparent}
+.print:hover{background:#f2d5ff}.thin{padding:9px 12px;margin-top:8px;font-size:.83rem}
+button:disabled{opacity:.43;cursor:not-allowed;transform:none!important}
+#answer{width:100%;padding:10px;margin-top:10px;overflow-wrap:anywhere}
+#status{min-height:24px;margin:14px 0 0;color:#e1c1ff;font-size:.9rem}
+.topline{display:flex;gap:12px;justify-content:space-between;align-items:center}
+.preview{display:grid;place-items:start center;min-height:220px;padding:15px;border-radius:12px;background:linear-gradient(#090910,#17121f)}
+.preview img{width:288px;max-width:100%;height:auto;box-shadow:0 12px 30px #0009}
+.preview .empty{text-align:center;margin:auto;color:#9588ad}
+#description{color:#ac9ebf;font-size:.82rem;margin:11px 0 0}
+.hint{color:#988caf;font-size:.78rem;margin:15px 0 0}
+@media(max-width:840px){.layout{grid-template-columns:1fr}.modes{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(max-width:460px){header{padding-top:24px}.modes{grid-template-columns:repeat(2,minmax(0,1fr))}.panel{padding:14px}.locale{width:100%}.controls{grid-template-columns:1fr 1fr}}
+</style>
 </head>
 <body>
-  <header>
-    <div><div class="tag">80MM OF COMPLETELY UNNECESSARY TECHNOLOGY</div><h1>THERMAL CHAOS <span aria-hidden="true">✳</span></h1><p>Waste paper responsibly. Or irresponsibly. Your call.</p></div>
-    <span class="signal">LOCAL USB EDITION</span>
-  </header>
-  <main class="layout">
-    <section class="panel">
-      <h2>Pick your terrible idea</h2>
-      <div class="modes" id="modes"></div>
-      <div id="extra"></div>
-      <label for="printer">Windows USB printer</label>
-      <select id="printer"><option value="">Finding USB printers...</option></select>
-      <button id="refresh" style="margin-top:8px">↻ Refresh printers</button>
-      <label class="check"><input type="checkbox" id="cut" checked> Auto-cut after printing</label>
-      <div class="actions">
-        <button id="generate">↻ Generate preview</button>
-        <button id="print" class="primary" disabled>🖨 PRINT THE NONSENSE</button>
-      </div>
-      <div class="actions"><button id="answer" style="display:none">Reveal / print puzzle answer</button></div>
-      <p id="status" role="status" aria-live="polite"></p>
-      <p class="hint">Nothing prints until you press PRINT. Only USB/DOT4 Windows printer ports are listed; Wi-Fi/network queues are excluded. Preview generation works without a printer. Accessible locally at 127.0.0.1 only.</p>
-    </section>
-    <section class="panel">
-      <h2>Your future regret</h2>
-      <div class="preview" id="preview"><p class="hint">Generate something first. No paper harmed yet.</p></div>
-      <p id="description" class="hint"></p>
-    </section>
-  </main>
+<header>
+<div><div class="kicker">80MM // UNHINGED EDITION</div><h1>THERMAL CHAOS<span aria-hidden="true"> ☠</span></h1><p id="subtitle"></p></div>
+<div class="locale"><label for="lang" id="languageLabel">Language / Nyelv</label><select id="lang"><option value="en">🇬🇧 English</option><option value="hu">🇭🇺 Magyar</option></select></div>
+</header>
+<main class="layout">
+<section class="panel">
+  <h2 id="pickTitle"></h2>
+  <div class="modes" id="modes"></div>
+  <div id="extra"></div>
+  <label for="printer" id="printerLabel"></label>
+  <select id="printer"><option value="">Loading...</option></select>
+  <button id="refresh" class="thin" type="button"></button>
+  <div class="controls">
+    <div><label for="pad" id="padLabel"></label><select id="pad"><option value="12">12 mm</option><option value="20" selected>20 mm</option><option value="30">30 mm</option></select></div>
+    <label class="check" style="align-self:end;margin-bottom:10px"><input type="checkbox" id="cut" checked><span id="cutLabel"></span></label>
+  </div>
+  <div class="actions"><button id="generate" type="button"></button><button id="print" class="print" type="button" disabled></button></div>
+  <button id="answer" type="button" style="display:none"></button>
+  <p id="status" role="status" aria-live="polite"></p>
+  <p id="hint" class="hint"></p>
+</section>
+<section class="panel">
+ <div class="topline"><h2 id="previewTitle"></h2><span aria-hidden="true">✂︎</span></div>
+ <div id="preview" class="preview"><span class="empty" id="empty"></span></div>
+ <p id="description"></p>
+</section>
+</main>
 <script>
 const MODES=[
-  {id:"insult",name:"🔥 Roast me",help:"Emotional damage, printed."},
-  {id:"quest",name:"🎲 Chaos quest",help:"Unnecessary side missions."},
-  {id:"puzzle",name:"🧠 Puzzle",help:"Tiny games with separate answers."},
-  {id:"photo",name:"📸 Thermal photo",help:"Dither your memories."},
-  {id:"mystery",name:"👁 Haunted signal",help:"Fictional creepy transmissions."},
-  {id:"certificate",name:"🏆 Certificate",help:"Officially worthless honors."},
-  {id:"fpv",name:"🚁 FPV mission",help:"Safer flying skill challenges."},
-  {id:"fake",name:"🧾 Fake receipt",help:"Clearly fictional purchases."}
+ {id:"insult",emoji:"🔥"}, {id:"quest",emoji:"🎲"}, {id:"puzzle",emoji:"🧠"},
+ {id:"photo",emoji:"📸"}, {id:"mystery",emoji:"📡"}, {id:"horror",emoji:"👁️"},
+ {id:"certificate",emoji:"🏆"}, {id:"fpv",emoji:"🚁"}, {id:"fake",emoji:"🧾"}
 ];
-let mode="insult",current=null,answer=null;
+const TXT={
+ en:{
+  subtitle:"Your tiny portal to profoundly questionable decisions.",
+  pick:"Choose your chaos",preview:"The evidence",empty:"Select a button. Create a problem.",
+  printer:"USB printer",refresh:"↻ Find printers",padding:"Bottom margin before cut",cut:"Auto-cut",
+  gen:"↻ SUMMON CHAOS",print:"🖨 PRINT IT",hint:"Preview first, paper second. All printing stays on the Windows USB queue.",
+  name:["ROAST ME","CHAOS QUEST","BRAIN DAMAGE","THERMAL PHOTO","HAUNTED SIGNAL","PURE HORROR","FAKE CERTIFICATE","FPV MISSION","FAKE RECEIPT"],
+  desc:["Your self-esteem wasn't using those hit points.","Receive an unsolicited quest.","Pocket puzzles; solutions on demand.","Convert pictures into edible-looking pixels.","Disturbing transmissions from impossible devices.","Very short stories. Very wrong endings.","Award yourself an absurd qualification.","A fresh little flying challenge.","Buy something from a shop that shouldn't exist."],
+  choose:"Choose",levels:"Damage level",difficulty:"Difficulty",puzzle:"Puzzle type",
+  nameInput:"Name on the certificate (optional)",nameHolder:"THE BEARER",craft:"Aircraft",
+  photo:"Choose photo",effect:"Rendering effect",photoNote:"Maximum 6 MB. Tall pictures get scaled down.",
+  levelsList:["Gentle","Mean","Nuclear","Existential crisis"],difficultyList:["Easy","Medium","Hard"],
+  puzzleList:["Surprise me","Sudoku","Number pattern","Caesar cipher","Riddle"],
+  effects:["Classic dither","Hard black and white","Newsprint","Inverted"],
+  ready:"READY TO PRINT. MAKE A BAD DECISION.",generating:"SUMMONING THE NONSENSE...",
+  noPhoto:"Choose a photo first.",bigPhoto:"Image must be below 6 MB.",
+  error:"ERROR: ",done:"The USB print queue has received your terrible idea.",
+  noPrinter:"Connect your USB receipt printer and select its Windows queue.",
+  missingPrinter:"No local USB printer found",windows:"Windows USB printing only",
+  unavailable:"Cannot reach local app", reveal:"👀 REVEAL ANSWER",solution:"Print solution slip", previewAlt:"Rendered receipt preview",
+  expire:"Receipt preview reset. Generate another.",language:"Language / Nyelv"
+ },
+ hu:{
+  subtitle:"A borzalmas döntések apró, papírzabáló kapuja.",
+  pick:"Válaszd ki a káoszt",preview:"A bizonyíték",empty:"Nyomj egy gombot. Generálj egy problémát.",
+  printer:"USB-nyomtató",refresh:"↻ Nyomtatók keresése",padding:"Alsó ráhagyás vágás előtt",cut:"Automatikus vágás",
+  gen:"↻ KÁOSZT IDE!",print:"🖨 NYOMTASD!",hint:"Először előnézet, utána papír. Kizárólag Windows USB-nyomtató.",
+  name:["ALÁZZ MEG!","KÁOSZKÜLDETÉS","AGYTORNA","HŐNYOMAT","KÍSÉRTETJEL","TISZTA HORROR","KAMU OKLEVÉL","FPV KÜLDETÉS","KAMU BLOKK"],
+  desc:["A maradék önbecsülésedet is bedaráljuk.","Teljesen értelmetlen mellékküldetés.","Zsebméretű rejtvények külön megfejtéssel.","Csináljunk egy fotóból pixeles műalkotást.","Üzenetek olyan eszközökről, amik nem is léteznek.","Pár sor. Aztán nem fogsz jól aludni.","Kapj hivatalosan értéktelen címet.","Egy repülés, egy kihívás.","Vásárolj egy lehetetlen univerzumban."],
+  choose:"Válassz",levels:"Lelki sérülés mértéke",difficulty:"Nehézség",puzzle:"Rejtvény típusa",
+  nameInput:"Név az oklevélre (opcionális)",nameHolder:"AZ OKLEVÉL TULAJDONOSA",craft:"Gép",
+  photo:"Válassz képet",effect:"Képátalakítás",photoNote:"Legfeljebb 6 MB. A túl magas képet lekicsinyítjük.",
+  levelsList:["Szelíd","Gonosz","Nukleáris","Egzisztenciális válság"],difficultyList:["Könnyű","Közepes","Nehéz"],
+  puzzleList:["Lepj meg","Sudoku","Számsor","Caesar-kód","Találós kérdés"],
+  effects:["Klasszikus dithering","Erős fekete-fehér","Újságnyomat","Negatív"],
+  ready:"NYOMTATHATÓ. HOZZ ROSSZ DÖNTÉST.",generating:"A KÁOSZ ELŐÁLLÍTÁSA FOLYAMATBAN...",
+  noPhoto:"Előbb válassz képet.",bigPhoto:"A kép legyen 6 MB alatt.",
+  error:"HIBA: ",done:"A Windows USB-nyomtatási sor megkapta a szörnyű ötletedet.",
+  noPrinter:"Csatlakoztasd az USB-s blokknyomtatót, és válaszd ki a Windowsban.",
+  missingPrinter:"Nincs helyi USB-nyomtató",windows:"USB-nyomtatás csak Windows alatt",
+  unavailable:"A helyi alkalmazás nem érhető el",reveal:"👀 MEGFEJTÉS MUTATÁSA",solution:"Megoldásblokk nyomtatása",previewAlt:"A blokk előnézete",
+  expire:"Az előnézet törölve. Generálj újat.",language:"Language / Nyelv"
+ }
+};
 const $=id=>document.getElementById(id);
-function tell(msg){$("status").textContent=msg}
-function fields(){
-  const extra=$("extra");extra.replaceChildren();
-  const makeSelect=(id,label,opts)=>{
-    const lab=document.createElement("label");lab.htmlFor=id;lab.textContent=label;
-    const sel=document.createElement("select");sel.id=id;
-    opts.forEach(([val,txt])=>{const op=document.createElement("option");op.value=val;op.textContent=txt;sel.append(op)});
-    extra.append(lab,sel);
-  };
-  if(mode==="insult")makeSelect("level","How much emotional damage?",[["gentle","Gentle"],["mean","Mean"],["nuclear","Nuclear"],["existential","Existential crisis"]]);
-  if(mode==="quest")makeSelect("level","Side quest difficulty",[["easy","Easy"],["medium","Medium"],["hard","Hard"]]);
-  if(mode==="puzzle"){
-    makeSelect("type","Puzzle type",[["random","Surprise me"],["sudoku","Sudoku"],["math","Number sequence"],["cipher","Cipher"],["riddle","Riddle"]]);
-    makeSelect("level","Difficulty",[["easy","Easy"],["medium","Medium"],["hard","Hard"]]);
-  }
-  if(mode==="photo"){
-    const lab=document.createElement("label");lab.textContent="Choose an image";lab.htmlFor="imageFile";
-    const input=document.createElement("input");input.type="file";input.accept="image/*";input.id="imageFile";
-    extra.append(lab,input);
-    makeSelect("effect","Photo effect",[["dither","Classic thermal dither"],["threshold","Hard black & white"],["newsprint","Newspaper"],["negative","Inverted dither"]]);
-    const note=document.createElement("p");note.className="hint";note.textContent="Max 6 MB. Tall photos are scaled down to save paper.";extra.append(note);
-  }
-  if(mode==="certificate"){
-    const lab=document.createElement("label");lab.textContent="Recipient's name (optional)";lab.htmlFor="name";
-    const input=document.createElement("input");input.id="name";input.maxLength=56;input.placeholder="THE BEARER";
-    extra.append(lab,input);
-  }
-  if(mode==="fpv")makeSelect("craft","Aircraft",[["Meteor75 Pro II","Meteor75 Pro II"],["Air75 II","Air75 II"],["Avata 2","Avata 2"],["MM-001","MM-001"]]);
+let mode="insult",current=null,answer=null;
+const t=()=>TXT[$("lang").value];
+function tell(message){$("status").textContent=message}
+function opt(id,label,options,selected){
+ const holder=$("extra"),lab=document.createElement("label"),sel=document.createElement("select");
+ lab.htmlFor=id;lab.textContent=label;sel.id=id;
+ options.forEach(([v,s])=>sel.add(new Option(s,v)));
+ if(selected)sel.value=selected;
+ holder.append(lab,sel);
 }
-function renderModes(){
- const parent=$("modes");parent.replaceChildren();
- MODES.forEach(item=>{
-  const b=document.createElement("button");b.textContent=item.name;b.title=item.help;
-  b.className=mode===item.id?"selected":"";
-  b.onclick=()=>{mode=item.id;current=null;answer=null;$("print").disabled=true;$("answer").style.display="none";$("preview").textContent="Generate something first.";tell(item.help);fields();renderModes()};
-  parent.append(b);
+function fields(){
+ const s=t(),h=$("extra");h.replaceChildren();
+ if(mode==="insult")opt("level",s.levels,[["gentle",s.levelsList[0]],["mean",s.levelsList[1]],["nuclear",s.levelsList[2]],["existential",s.levelsList[3]]],"mean");
+ if(mode==="quest")opt("level",s.difficulty,[["easy",s.difficultyList[0]],["medium",s.difficultyList[1]],["hard",s.difficultyList[2]]],"medium");
+ if(mode==="puzzle"){
+  opt("type",s.puzzle,[["random",s.puzzleList[0]],["sudoku",s.puzzleList[1]],["math",s.puzzleList[2]],["cipher",s.puzzleList[3]],["riddle",s.puzzleList[4]]]);
+  opt("level",s.difficulty,[["easy",s.difficultyList[0]],["medium",s.difficultyList[1]],["hard",s.difficultyList[2]]],"medium");
+ }
+ if(mode==="photo"){
+  const lab=document.createElement("label");lab.htmlFor="imageFile";lab.textContent=s.photo;
+  const input=document.createElement("input");input.id="imageFile";input.type="file";input.accept="image/*";h.append(lab,input);
+  opt("effect",s.effect,[["dither",s.effects[0]],["threshold",s.effects[1]],["newsprint",s.effects[2]],["negative",s.effects[3]]]);
+  const p=document.createElement("p");p.className="hint";p.textContent=s.photoNote;h.append(p);
+ }
+ if(mode==="certificate"){
+  const lab=document.createElement("label");lab.htmlFor="name";lab.textContent=s.nameInput;
+  const input=document.createElement("input");input.id="name";input.maxLength=56;input.placeholder=s.nameHolder;h.append(lab,input);
+ }
+ if(mode==="fpv")opt("craft",s.craft,[["Meteor75 Pro II","Meteor75 Pro II"],["Air75 II","Air75 II"],["Avata 2","Avata 2"],["MM-001","MM-001"]]);
+}
+function clearPreview(){
+ current=null;answer=null;$("print").disabled=true;$("answer").style.display="none";
+ $("preview").replaceChildren();
+ const p=document.createElement("span");p.className="empty";p.textContent=t().empty;$("preview").append(p);
+ $("description").textContent="";
+}
+function modes(){
+ const host=$("modes"),s=t();host.replaceChildren();
+ MODES.forEach((m,i)=>{
+  const button=document.createElement("button");button.className="mode"+(mode===m.id?" selected":"");
+  const emo=document.createElement("span");emo.className="emoji";emo.textContent=m.emoji;
+  const name=document.createElement("span");name.className="name";name.textContent=s.name[i];
+  button.append(emo,name);button.title=s.desc[i];
+  button.onclick=()=>{mode=m.id;modes();fields();clearPreview();tell(s.desc[i])};
+  host.append(button);
  });
 }
-async function loadPrinters(){
- const select=$("printer"),previous=select.value;
- select.replaceChildren();
+function translate(){
+ const s=t();document.documentElement.lang=$("lang").value;
+ [["subtitle",s.subtitle],["pickTitle",s.pick],["previewTitle",s.preview],["printerLabel",s.printer],
+ ["refresh",s.refresh],["padLabel",s.padding],["cutLabel",s.cut],["generate",s.gen],
+ ["print",s.print],["hint",s.hint],["languageLabel",s.language]].forEach(([id,v])=>$(id).textContent=v);
+ modes();fields();clearPreview();tell("");
+}
+async function usbPrinters(){
+ const sel=$("printer"),previous=sel.value;sel.replaceChildren();
  try{
-   const res=await fetch("/api/printers");const data=await res.json();
-   if(!data.printers.length){select.add(new Option(data.windows?"No USB printer queues found":"Printer queues available on Windows only",""));return}
-   data.printers.forEach(p=>select.add(new Option(p.name+" ["+p.port+"]",p.name)));
-   if([...select.options].some(o=>o.value===previous))select.value=previous;
- }catch(e){select.add(new Option("Cannot connect to app",""));tell(e.message)}
+  const result=await fetch("/api/printers");if(!result.ok)throw new Error();
+  const data=await result.json();
+  if(!data.printers.length)sel.add(new Option(data.windows?t().missingPrinter:t().windows,""));
+  data.printers.forEach(p=>sel.add(new Option(p.name+" ["+p.port+"]",p.name)));
+  if([...sel.options].some(o=>o.value===previous))sel.value=previous;
+ }catch(e){sel.add(new Option(t().unavailable,""))}
 }
 function fileData(file){
  return new Promise((resolve,reject)=>{
-   const reader=new FileReader();
-   reader.onload=()=>resolve(reader.result);reader.onerror=()=>reject(new Error("Could not read image"));
-   reader.readAsDataURL(file);
+  const reader=new FileReader();reader.onload=()=>resolve(reader.result);
+  reader.onerror=()=>reject(new Error("Image read failed"));reader.readAsDataURL(file);
  });
 }
 async function generate(kind=mode,payload=null){
- $("generate").disabled=true;$("print").disabled=true;$("answer").style.display="none";
- tell("Creating nonsense...");
+ const selectedLang=$("lang").value;
+ $("generate").disabled=true;$("print").disabled=true;$("answer").style.display="none";tell(t().generating);
  try{
-   const data=payload||{};
-   if(!payload){
-     for(const id of ["level","type","effect","name","craft"]){if($(id))data[id]=$(id).value}
-     if(kind==="photo"){
-       const file=$("imageFile").files[0];
-       if(!file)throw new Error("Choose a photo first");
-       if(file.size>6000000)throw new Error("Photo must be under 6 MB");
-       data.image=await fileData(file);
-     }
+  const data=payload?{...payload}:{};
+  data.lang=selectedLang;data.pad_mm=Number($("pad").value);
+  if(!payload){
+   for(const id of ["level","type","effect","name","craft"])if($(id))data[id]=$(id).value;
+   if(kind==="photo"){
+    const f=$("imageFile").files[0];if(!f)throw new Error(t().noPhoto);
+    if(f.size>6000000)throw new Error(t().bigPhoto);data.image=await fileData(f);
    }
-   const res=await fetch("/api/generate",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({kind,data})});
-   const result=await res.json();
-   if(!res.ok)throw new Error(result.error||"Could not generate");
-   current=result.id;answer=result.answer;
-   const img=new Image();img.alt="Exact monochrome receipt preview";img.src=result.image;
-   $("preview").replaceChildren(img);$("description").textContent=result.description;
-   $("print").disabled=false;
-   if(answer!==null){$("answer").style.display="block";$("answer").textContent="Reveal / print puzzle answer"}
-   tell("Ready. Print when you dare.");
- }catch(e){current=null;tell("Oops: "+e.message)}
+  }
+  const resp=await fetch("/api/generate",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({kind,data})});
+  const result=await resp.json();if(!resp.ok)throw new Error(result.error||"generation failed");
+  current=result.id;answer=result.answer;
+  const im=new Image();im.alt=t().previewAlt;im.src=result.image;
+  $("preview").replaceChildren(im);$("description").textContent=result.description;
+  $("print").disabled=false;
+  if(answer!==null){
+   const btn=$("answer");btn.style.display="block";btn.textContent=t().reveal;
+   btn.onclick=()=>{btn.textContent=answer+" — "+t().solution;btn.onclick=()=>generate("answer",{answer})};
+  }
+  tell(t().ready);
+ }catch(e){current=null;tell(t().error+e.message)}
  finally{$("generate").disabled=false}
 }
+$("lang").onchange=()=>{translate();usbPrinters()};
+$("pad").onchange=()=>{if(current){clearPreview();tell(t().expire)}};
 $("generate").onclick=()=>generate();
-$("refresh").onclick=loadPrinters;
-$("answer").onclick=async()=>{
- if(!answer)return;
- const solution=answer;
- const button=$("answer");
- button.textContent="Answer: "+solution+" — click to make a solution slip";
- button.onclick=()=>{button.onclick=()=>{};generate("answer",{answer:solution})};
-};
+$("refresh").onclick=usbPrinters;
 $("print").onclick=async()=>{
  if(!current)return;
- if(!$("printer").value){tell("Install/select your Birch USB printer in Windows first.");return}
- $("print").disabled=true;tell("Sending to USB printer...");
+ if(!$("printer").value){tell(t().noPrinter);return}
+ $("print").disabled=true;
  try{
-   const res=await fetch("/api/print",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({id:current,printer:$("printer").value,cut:$("cut").checked})});
-   const out=await res.json();if(!res.ok)throw new Error(out.error||"Print failed");
-   tell(out.message+"! (Physical print not independently verified.)");
- }catch(e){tell("Printer error: "+e.message)}
+  const resp=await fetch("/api/print",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({id:current,printer:$("printer").value,cut:$("cut").checked})});
+  const result=await resp.json();if(!resp.ok)throw new Error(result.error||"Printing failed");
+  tell(t().done);
+ }catch(e){tell(t().error+e.message)}
  finally{$("print").disabled=false}
 };
-renderModes();fields();loadPrinters();
+translate();usbPrinters();
 </script>
 </body></html>
