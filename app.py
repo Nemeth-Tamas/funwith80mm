@@ -11,6 +11,7 @@ from pathlib import Path
 
 from flask import Flask, jsonify, request, send_from_directory
 from PIL import Image, ImageDraw, ImageFont, ImageOps, UnidentifiedImageError
+from content import BANK
 
 ROOT = Path(__file__).resolve().parent
 app = Flask(__name__, static_folder=str(ROOT / "static"))
@@ -142,126 +143,18 @@ class Receipt:
         self.y += h + 15
         return self
 
-    def footer(self, message="PAPER WAS HARMED IN THIS EXPERIMENT"):
+    def footer(self, message="THERMAL CHAOS", pad_mm=20):
         self.rule()
         self.text(message, 17, False, "center", gap=2)
-        self.y += 50
+        # 203 DPI is about eight raster rows per millimetre.
+        # This extra white area lands AFTER the last text and BEFORE the cut.
+        self.y += int(max(12, min(36, pad_mm)) * 8)
         if self.y > 5900:
             raise ValueError("Receipt is too tall")
         return self.im.crop((0, 0, WIDTH, self.y)).point(lambda p: 0 if p < 155 else 255)
 
 def choice(seq):
     return random.choice(seq)
-
-INSULTS = {
-    "gentle": [
-        "You are doing great. By the standards of a particularly confused toaster.",
-        "Your ambition is inspiring. Your execution has filed for annual leave.",
-        "Your productivity has the unmistakable energy of a Windows update stuck at 99%.",
-        "Even your procrastination is running behind schedule.",
-        "Somewhere, a progress bar is working harder than you."
-    ],
-    "mean": [
-        "You bought a printer to outsource the one thing you do consistently: wasting paper.",
-        "Your browser has 38 tabs open and not one contains a completed task.",
-        "You have the troubleshooting skills of a wizard and the time management of a potato.",
-        "Your printer has completed more jobs today than your entire to-do list.",
-        "You can configure BGP but somehow cannot configure a normal bedtime."
-    ],
-    "nuclear": [
-        "BREAKING: Local genius automates insults because even self-criticism was too much manual labor.",
-        "Your greatest uptime achievement is a machine you forgot to turn off.",
-        "You are a one-person IT department with enterprise-grade chaos and zero change management.",
-        "You spent more effort optimizing this receipt than your actual daily routine.",
-        "This machine prints at incredible speed, yet cannot process the sheer magnitude of your unfinished projects."
-    ],
-    "existential": [
-        "One day the universe will forget every achievement. But this thermal receipt will fade first.",
-        "You are the temporary system administrator of a biological machine with no rollback.",
-        "The entropy of the universe grows. So does your pile of USB cables.",
-        "Your life is a beta release with no documentation and a terrifyingly long issue tracker.",
-        "Civilizations rise and fall. Windows still asks whether you want to restart now."
-    ]
-}
-QUESTS = {
-    "easy": [
-        "Find an obsolete cable. Explain why you still own it.",
-        "Give one of your devices a ridiculous official name.",
-        "Organize exactly five items. No more. No less.",
-        "Find the oldest battery-powered gadget nearby.",
-        "Make a perfect cup of tea or coffee, then rate it like a benchmark."
-    ],
-    "medium": [
-        "Find three completely different USB connector types in the house.",
-        "Build a tiny sculpture from spare cables. Give it a technical datasheet.",
-        "Locate one device that has never received a firmware update.",
-        "Draw a circuit diagram for an appliance that does not need one.",
-        "Solve a real problem without buying any additional equipment."
-    ],
-    "hard": [
-        "Identify five things you could repair with the tools already on hand.",
-        "Create a museum label for the least impressive object in the room.",
-        "Design an absurd new keyboard shortcut and demonstrate it.",
-        "Make a 30-second documentary about the life of a single screw.",
-        "Invent a useless IoT device, including a complete feature list."
-    ]
-}
-RIDDLES = [
-    ("What has keys but cannot open any locks?", "A keyboard"),
-    ("I speak without a mouth and hear without ears. What am I?", "An echo"),
-    ("What gets wetter the more it dries?", "A towel"),
-    ("What has many teeth but never bites?", "A comb"),
-    ("The more you take away from me, the bigger I get. What am I?", "A hole"),
-    ("What travels around the world while staying in one corner?", "A stamp")
-]
-MYSTERIES = [
-    "The security camera recorded you entering the room. It did not record you leaving. You are reading this outside.",
-    "A device has answered a ping. Its power cable was removed yesterday.",
-    "The printer received a job dated tomorrow. The author field contains your name.",
-    "There are nine devices on the network. The inventory lists eight. The ninth lists itself as the router.",
-    "At 03:14, the system logged a backup restore. No backup was ever created.",
-    "The camera sees a person standing behind the monitor. The monitor is facing the wall.",
-    "A maintenance ticket was opened by a technician who has not been born yet.",
-    "The drive has zero free space. The only file is named YOU_ARE_HERE.txt."
-]
-CERTS = [
-    ("EXPERT PROCRASTINATOR", "For outstanding work on a task that has not yet begun."),
-    ("USB CABLE ARCHIVIST", "For preserving cables of uncertain origin and doubtful future use."),
-    ("CERTIFIED CHAOS ENGINEER", "For maintaining systems in a state of creative disorder."),
-    ("MASTER OF THE RESTART", "For solving difficult problems through strategic power cycling."),
-    ("UNLICENSED GENIUS", "For demonstrating confidence unsupported by the available evidence."),
-    ("SLEEP SCHEDULE REBEL", "For refusing to accept the tyranny of conventional bedtime.")
-]
-FLIGHT_TASKS = {
-    "whoop": [
-        "Hover steadily at eye level for 15 seconds in a safe, clear area.",
-        "Fly three controlled figure-eights through open space.",
-        "Land precisely on a marked pad three times.",
-        "Fly a smooth rectangular circuit, then reverse direction.",
-        "Practice gentle coordinated turns without altitude hunting."
-    ],
-    "camera": [
-        "Record a smooth, low-speed reveal shot in a permitted open area.",
-        "Film a steady orbit around an inanimate landmark with safe clearance.",
-        "Capture a cinematic forward tracking shot with constant speed.",
-        "Fly a gentle S-shaped camera path and compare three takes.",
-        "Practice stable framing on a fixed object in open space."
-    ],
-    "five": [
-        "Perform five precise takeoffs and landings in an open area.",
-        "Fly slow straight lines with deliberate heading control.",
-        "Practice consistent altitude through four wide turns.",
-        "Execute a smooth figure-eight, prioritizing control over speed.",
-        "Record a clean, low-speed freestyle line without risky proximity."
-    ]
-}
-FICTIONAL_SHOPS = [
-    ("ACME INTERDIMENSIONAL", [("POCKET BLACK HOLE", 499), ("PORTABLE WORMHOLE", 1200), ("TIME REFUND", -15)]),
-    ("DEPARTMENT OF NONSENSE", [("BUREAUCRACY LICENSE", 98), ("FORM 42-B", 14), ("QUEUE PRIORITY", 710)]),
-    ("GALACTIC TECH SUPPORT", [("REBOOT THE MOON", 360), ("SUN DRIVER UPDATE", 880), ("ERROR 404 REPAIR", 404)]),
-    ("DRAGON PARTS DEPOT", [("FIREWALL DRAGON", 925), ("SPARE WING KIT", 199), ("SMOKE TEST", 75)]),
-    ("COSMIC CONVENIENCE", [("BOTTLED NOTHING", 100), ("ONE EXTRA TUESDAY", 450), ("GRAVITY REFILL", 99)])
-]
 
 def make_sudoku(level):
     # Sudoku solved base, with randomized permutations preserving valid rows/columns/boxes.
@@ -304,120 +197,150 @@ def make_photo(src, effect):
     return im
 
 def build(kind, data):
+    if not isinstance(data, dict):
+        raise ValueError("Invalid options")
+    lang = "hu" if data.get("lang") == "hu" else "en"
+    hu = lang == "hu"
+    bank = BANK[lang]
     r = Receipt()
     answer = None
     meta = ""
+    def tx(en, hungarian):
+        return hungarian if hu else en
+
     if kind == "insult":
         level = str(data.get("level", "mean")).lower()
-        level = level if level in INSULTS else "mean"
-        r.heading("Annual performance audit", "YOU HAVE BEEN ROASTED")
-        r.text("SEVERITY: " + level.upper(), 22, True).rule()
-        r.text(choice(INSULTS[level]), 30, True)
-        r.space(15).text("ASSESSMENT: NEEDS COFFEE / RESTART", 18)
-        r.text("SIGNED: YOUR DISAPPOINTED PRINTER", 18)
-        meta = "One professionally unhelpful insult"
+        level = level if level in bank["insults"] else "mean"
+        r.heading(tx("Personnel audit", "Személyzeti ellenőrzés"),
+                  tx("ROASTED", "LEOLTÁS"))
+        r.text(tx("DAMAGE LEVEL: ", "SÉRÜLÉS MÉRTÉKE: ") + level.upper(), 21, True).rule()
+        r.text(choice(bank["insults"][level]), 29, True)
+        r.space(15).text(tx("OFFICIAL VERDICT: YOU ASKED FOR THIS.", "HIVATALOS DÖNTÉS: TE KÉRTED."), 19)
+        meta = tx("A freshly served personal disaster", "Friss, személyre szabott katasztrófa")
     elif kind == "quest":
         level = str(data.get("level", "medium")).lower()
-        level = level if level in QUESTS else "medium"
-        r.heading("Unsolicited side mission", "CHAOS QUEST")
-        r.pair("DIFFICULTY", level.upper()).rule()
-        r.text(choice(QUESTS[level]), 30, True)
-        r.space(20).pair("XP REWARD", {"easy":"10", "medium":"30", "hard":"100"}[level])
-        r.pair("FAILURE PENALTY", "MILD SHAME")
-        meta = "A completely unnecessary objective"
+        level = level if level in bank["quests"] else "medium"
+        r.heading(tx("Mandatory optional mission", "Kötelező opcionális küldetés"),
+                  tx("CHAOS QUEST", "KÁOSZKÜLDETÉS"))
+        r.pair(tx("DIFFICULTY", "NEHÉZSÉG"), level.upper()).rule()
+        r.text(choice(bank["quests"][level]), 28, True)
+        r.space(18).pair("XP", {"easy":"10", "medium":"40", "hard":"150"}[level])
+        r.pair(tx("FAILURE", "BUKÁS"), tx("SHAME", "SZÉGYEN"))
+        meta = tx("Absolutely unsolicited quest", "Teljesen kéretlen küldetés")
     elif kind == "puzzle":
         level = str(data.get("level", "medium")).lower()
         level = level if level in ("easy", "medium", "hard") else "medium"
         puzzle_type = str(data.get("type", "random")).lower()
         if puzzle_type == "random":
-            puzzle_type = choice(["sudoku","math","cipher","riddle"])
-        r.heading("Tiny brain gym", puzzle_type + " / " + level)
+            puzzle_type = choice(["sudoku", "math", "cipher", "riddle"])
+        if puzzle_type not in ("sudoku", "math", "cipher", "riddle"):
+            raise ValueError("Unknown puzzle type")
+        r.heading(tx("Pocket-sized brain damage", "Zsebre vágható agytorna"),
+                  {"sudoku":"SUDOKU", "math":tx("NUMBER CODE", "SZÁMSOR"),
+                   "cipher":tx("CIPHER", "REJTVÉNY"), "riddle":tx("RIDDLE", "TALÁLÓS KÉRDÉS")}[puzzle_type])
         if puzzle_type == "sudoku":
             solution, board = make_sudoku(level)
-            r.text("Fill 1-9 in each row, column & 3x3 box.", 21).space(10)
+            r.text(tx("Fill 1-9 in each row, column and 3x3 box.", "Minden sorban, oszlopban és 3x3-as mezőben legyen 1-9."), 21).space(10)
             r.sudoku(solution, board)
-            answer = "\n".join(" ".join(map(str,row)) for row in solution)
+            answer = "\n".join(" ".join(map(str, row)) for row in solution)
         elif puzzle_type == "math":
-            a = random.randint(5, 25) * (1 if level=="easy" else 3)
+            a = random.randint(5, 25) * (1 if level == "easy" else 3)
             delta = random.randint(2, 9) * (1 if level != "hard" else 2)
             sequence = [a + delta*i*i for i in range(5)]
-            r.text("Complete the sequence:", 25).space(14)
-            r.text("   ".join(map(str,sequence)) + "   ?", 28, True)
-            answer = str(a + delta*25) + " (add " + str(delta) + " times the square of the position)"
+            r.text(tx("Find the next number:", "Mi a következő szám?"), 25).space(14)
+            r.text("   ".join(map(str, sequence)) + "   ?", 27, True)
+            answer = str(a + delta*25) + tx(" (quadratic sequence)", " (négyzetes számsor)")
         elif puzzle_type == "cipher":
             shift = random.randint(1, 25)
             plain = choice(["THE CAKE IS A LIE", "TRUST THE PRINTER", "REBOOT EVERYTHING", "HIDE THE CABLES", "THE SIGNAL IS LOST"])
+            if hu:
+                plain = choice(["EZ CSAK EGY TESZT", "A NYOMTATO FIGYEL", "INDITS MINDENT UJRA", "REJTSD EL A KABELT", "A JEL ELTUNT"])
             enc = "".join(chr((ord(ch)-65+shift)%26+65) if "A"<=ch<="Z" else ch for ch in plain)
-            r.text("Caesar cipher: decode this message.", 23).space(15)
+            r.text(tx("Decode the Caesar cipher:", "Fejtsd meg a Caesar-kódot:"), 23).space(15)
             r.text(enc, 29, True).space(16)
-            r.text("Hint: every letter was shifted by the same amount.", 20)
-            answer = plain + " (shift back " + str(shift) + ")"
+            r.text(tx("Every letter was shifted by the same amount.", "Minden betűt ugyanannyival eltoltunk."), 20)
+            answer = plain + tx(" (shift back ", " (eltolás visszafelé: ") + str(shift) + ")"
         else:
-            question, answer = choice(RIDDLES)
+            question, answer = choice(bank["riddles"])
             r.text(question, 29, True)
-        r.space(20).text("ANSWER AVAILABLE IN WEB APP", 19, False, "center")
-        meta = "Solution stays off the paper until requested"
+        r.space(20).text(tx("ANSWER IN WEB APP", "MEGOLDÁS A WEBOLDALON"), 19, False, "center")
+        meta = tx("Puzzles without instant spoilers", "Rejtvény azonnali spoiler nélkül")
     elif kind == "photo":
-        r.heading("Grainy memories department", "THERMAL PHOTO")
+        r.heading(tx("Badly remembered memories", "Pixeles emlékek osztálya"),
+                  tx("THERMAL PHOTO", "HŐNYOMAT"))
         r.photo(make_photo(data.get("image"), str(data.get("effect", "dither"))))
-        r.text("INSTANT PHOTOGRAPH / 0% COLOR", 18, False, "center")
-        meta = "A monochrome instant photo"
+        r.text(tx("YOUR MEMORIES NOW HAVE ONLY TWO COLORS", "MOSTANTÓL KÉT SZÍNBŐL ÁLL AZ ÉLETED"), 17, False, "center")
+        meta = tx("Gloriously grainy instant photo", "Dicsőségesen szemcsés fénykép")
     elif kind == "mystery":
-        r.heading("Fictional horror transmission", "SIGNAL UNKNOWN")
-        r.pair("SOURCE", choice(["CH-09", "LOCALHOST", "VOID", "PORT 666"]))
-        r.pair("PRIORITY", choice(["BLACK", "REDACTED", "UNDEFINED"])).rule()
-        r.text(choice(MYSTERIES), 28, True)
-        r.space(20).text("END TRANSMISSION // FICTION", 20)
-        meta = "A deliberately creepy fictional incident"
+        r.heading(tx("Unexplained technical incident", "Megmagyarázhatatlan incidens"),
+                  tx("UNKNOWN SIGNAL", "ISMERETLEN JEL"))
+        r.pair(tx("SOURCE", "FORRÁS"), choice(["CH-09", "LOCALHOST", "VOID", "PORT 666"]))
+        r.pair(tx("LEVEL", "SZINT"), choice(["BLACK", "RED", "UNDEFINED"])).rule()
+        r.text(choice(bank["mysteries"]), 28, True)
+        r.space(12).text(tx("END TRANSMISSION", "ADÁS VÉGE"), 18)
+        meta = tx("Something is terribly wrong with the network", "Valami nagyon nincs rendben a hálózattal")
+    elif kind == "horror":
+        # Minimalist micro-horror: no long preamble to ruin the scare.
+        r.text(choice(["03:17", "02:04", "03:33", "UNKNOWN", "NO SIGNAL"]) if not hu
+               else choice(["03:17", "02:04", "03:33", "ISMERETLEN", "NINCS JEL"]),
+               19, True).rule(True)
+        r.space(14).text(choice(bank["horror"]), 33, True)
+        r.space(22).text(tx("IT KNOWS YOU READ THIS.", "TUDJA, HOGY ELOLVASTAD."), 16, False, "center")
+        meta = tx("A very short nightmare", "Nagyon rövid rémálom")
     elif kind == "certificate":
-        title, description = choice(CERTS)
-        name = re.sub(r"[\x00-\x1f]", "", str(data.get("name", "")).strip())[:56] or "THE BEARER"
-        r.heading("Office of dubious honors", "CERTIFICATE")
-        r.text("THIS OFFICIALLY CERTIFIES", 22, False, "center").space(14)
-        r.text(name.upper(), 35, True, "center").space(16)
-        r.text("IS NOW A", 23, False, "center").space(8)
+        title, description = choice(bank["certs"])
+        name = re.sub(r"[\x00-\x1f]", "", str(data.get("name", "")).strip())[:56] or tx("THE BEARER", "AZ OKLEVÉL TULAJDONOSA")
+        r.heading(tx("Office of dubious honors", "Kétes kitüntetések hivatala"),
+                  tx("CERTIFICATE", "OKLEVÉL"))
+        r.text(tx("THIS CERTIFIES THAT", "EZENNEL TANÚSÍTJUK, HOGY"), 21, False, "center").space(14)
+        r.text(name.upper(), 34, True, "center").space(12)
+        r.text(tx("HAS BEEN APPOINTED", "ELNYERTE A CÍMET:"), 22, False, "center").space(8)
         r.text(title, 31, True, "center").space(20)
         r.text(description, 24, False, "center")
         r.space(24).rule(True)
-        r.text("APPROVED BY THE COUNCIL OF", 18, False, "center")
-        r.text("QUESTIONABLE QUALIFICATIONS", 18, True, "center")
-        meta = "A completely worthless honorary certificate"
+        r.text(tx("APPROVED BY THE COMMITTEE", "A BIZOTTSÁG JÓVÁHAGYTA"), 18, True, "center")
+        meta = tx("An honor of questionable value", "Megtisztelő, teljesen értéktelen kitüntetés")
     elif kind == "fpv":
-        craft = str(data.get("craft","Meteor75 Pro II"))[:50]
+        craft = str(data.get("craft", "Meteor75 Pro II"))[:50]
         mode = ("camera" if "Avata" in craft else "five" if "MM-001" in craft else "whoop")
-        r.heading("FPV skill challenge", "MISSION BRIEF")
-        r.text("AIRCRAFT: " + craft, 22, True).rule()
-        r.text(choice(FLIGHT_TASKS[mode]), 29, True)
-        r.space(16).text("RULES: Fly legally, maintain clearance, keep a spotter when required, and abort if unsafe.", 19)
-        r.space(14).pair("REWARD", str(random.choice([25,50,75,100])) + " XP")
-        meta = "A safe training flight challenge"
+        r.heading(tx("Flight challenge generator", "Repülési kihívásgenerátor"),
+                  tx("FPV MISSION", "FPV KÜLDETÉS"))
+        r.text(tx("AIRCRAFT: ", "GÉP: ") + craft, 22, True).rule()
+        r.text(choice(bank["flight"][mode]), 29, True)
+        r.space(14).pair("XP", str(choice([25, 50, 75, 100])))
+        r.text(tx("Safe area. Stay legal. Abort if sketchy.", "Biztonságos terület, szabályos repülés. Ha gáz van: leszállás."), 18)
+        meta = tx("One objective. One battery. Go.", "Egy feladat. Egy akku. Hajrá.")
     elif kind == "fake":
-        shop, products = choice(FICTIONAL_SHOPS)
-        r.text("!!! PARODY / NOT A REAL RECEIPT !!!", 21, True, "center").rule(True)
-        r.text(shop, 30, True, "center").space(10)
-        r.text("FICTIONAL TRANSACTION / VOID", 19, False, "center").rule()
+        shop, products = choice(bank["shops"])
+        r.text(tx("FICTIONAL SHOP / PARODY", "KITALÁLT BOLT / PARÓDIA"), 21, True, "center").rule(True)
+        r.text(shop, 30, True, "center").space(8)
+        r.text(tx("TRANSACTION: PURE NONSENSE", "TRANZAKCIÓ: TELJES KÉPTELENSÉG"), 18, False, "center").rule()
         total = 0
         for label, price in products:
             qty = random.randint(1, 3)
-            amount = qty*price
+            amount = qty * price
             total += amount
             r.text(str(qty) + "x " + label, 22, True)
-            r.pair("  " + str(price) + " CHAOS", str(amount))
-        r.rule().pair("TOTAL CHAOS CREDITS", str(total)).rule(True)
-        r.text("PAYMENT: IMAGINATION", 23, True)
-        r.text("AUTH CODE: " + str(random.randint(100000,999999)), 19)
-        r.text("NOT VALID FOR PURCHASES, ACCOUNTING OR TAX", 19, True, "center")
-        meta = "A prominently fictional comedy receipt"
+            r.pair("  " + str(price) + " CC", str(amount))
+        r.rule().pair(tx("TOTAL CC", "ÖSSZES CC"), str(total)).rule(True)
+        r.text(tx("PAYMENT: IMAGINATION", "FIZETÉS: KÉPZELET"), 23, True)
+        r.text(tx("PARODY / NOT A REAL RECEIPT", "PARÓDIA / NEM VALÓDI NYUGTA"), 19, True, "center")
+        meta = tx("Shopping in a broken universe", "Vásárlás egy hibás univerzumban")
     elif kind == "answer":
-        value = re.sub(r"[\x00-\x1f]", " ", str(data.get("answer","")))[:900]
+        value = re.sub(r"[\x00-\x1f]", " ", str(data.get("answer", "")))[:900]
         if not value.strip():
             raise ValueError("No puzzle solution available")
-        r.heading("The secret appendix", "PUZZLE ANSWER")
+        r.heading(tx("No cheating, allegedly", "Persze, senki sem csalt"),
+                  tx("PUZZLE ANSWER", "MEGOLDÁS"))
         r.text(value, 23, True)
-        meta = "Solution slip"
+        meta = tx("An emergency supply of answers", "Vésztartalék megfejtések")
     else:
         raise ValueError("Unknown print mode")
-    return r.footer(), answer, meta
+    try:
+        pad_mm = int(data.get("pad_mm", 20))
+    except (TypeError, ValueError):
+        pad_mm = 20
+    return r.footer(tx("THERMAL CHAOS // NO REFUNDS", "THERMAL CHAOS // NINCS VISSZATÉRÍTÉS"), pad_mm), answer, meta
 
 def usb_printers():
     if os.name != "nt":
