@@ -1,4 +1,8 @@
-"""Offline creative content for Thermal Chaos. English and Hungarian."""
+"""Offline creative content for Thermal Chaos. English and Hungarian.
+
+The original bank below is retained verbatim; authored JSON packs are appended
+after its definition. Consumers continue to import BANK exactly as before.
+"""
 BANK = {
  "en": {
   "insults": {
@@ -429,3 +433,7 @@ BANK = {
   ]
  }
 }
+
+from content_library import extend_bank
+
+BANK = extend_bank(BANK)

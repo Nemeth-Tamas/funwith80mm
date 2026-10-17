@@ -44,3 +44,49 @@ py -3 -m venv .venv
 ```powershell
 .\.venv\Scripts\python.exe -m unittest discover -s tests -v
 ```
+
+## Operation Infinite Nonsense
+
+The library contains **924 authored entries per language**, including **730 new
+entries per language** in the expansion packs. Existing entries remain at the
+start of their original lists. Products within a shop, random quantities,
+Sudoku boards, arithmetic patterns and Caesar shifts are **not** counted as
+additional authored entries.
+
+| Category | English | Magyar | New per language |
+| --- | ---: | ---: | ---: |
+| Insults: gentle | 50 | 50 | 40 |
+| Insults: mean | 55 | 55 | 40 |
+| Insults: nuclear | 55 | 55 | 40 |
+| Insults: existential | 50 | 50 | 40 |
+| Quests: easy | 85 | 85 | 70 |
+| Quests: medium | 85 | 85 | 70 |
+| Quests: hard | 85 | 85 | 70 |
+| Pure horror | 130 | 130 | 100 |
+| Haunted transmissions | 80 | 80 | 60 |
+| Certificates | 75 | 75 | 60 |
+| Fictional shops / receipts | 49 | 49 | 40 |
+| Riddles | 50 | 50 | 40 |
+| FPV: whoop | 25 | 25 | 20 |
+| FPV: cinematic | 25 | 25 | 20 |
+| FPV: five-inch | 25 | 25 | 20 |
+| **Total** | **924** | **924** | **730** |
+
+Content packs live in `content_packs/en/` and `content_packs/hu/`, organised by
+category. See [the authoring guide](content_packs/README.md). The loader validates
+both languages at startup, appends the packs, and exposes the same `content.BANK`
+API as before. No printer, UI or rendering settings are changed by this expansion.
+
+To validate and print the current counts:
+
+```powershell
+.\.venv\Scripts\python.exe -m content_library
+```
+
+The test suite forces **every entry** through its actual generator, renders its
+576-pixel receipt, checks the white bottom padding and side margins, and encodes
+it as ESC/POS with a cutter command. It also renders every riddle's answer slip,
+tests invalid content, checks preservation of the original lists, and verifies
+the new puzzles with arithmetic, exhaustive small logic models and simulated
+solution steps. These tests run without a printer; physical Windows printing
+still needs a connected receipt printer.
