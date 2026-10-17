@@ -308,7 +308,7 @@ def print_wanted_poster(receipt, photo, lang, alias=None):
 
     for field in ("alias", "charges", "seen", "reward", "note"):
         receipt.space(7)
-        receipt.text(copy[field], 18, True, gap=1)
+        receipt.text(copy["labels"][field], 18, True, gap=1)
         receipt.text(record[field], 25 if field != "note" else 21,
                      field in ("alias", "charges"), gap=2)
     receipt.space(12).rule(True)
