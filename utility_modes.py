@@ -311,37 +311,180 @@ def legal_terms(data):
 
 
 def parts_order_terms(data):
-    """Select PREPAYMENT vs contractual EARNEST MONEY; never an automatic forfeiture."""
+    """Validate a Hungarian parts-order agreement before any printing.
+
+    "Foglaló" is a *bilaterally agreed* earnest-money term under Ptk 6:185,
+    not a seller-imposed nonrefundable advance. A promised ready date is
+    deliberately separate from a courier's estimated arrival date.
+    """
+    from datetime import date
+
     client = _value(data, "customer", 110, required=True)
     part = _value(data, "part", 170, required=True)
     reference = _value(data, "reference", 60)
     eta = _value(data, "eta", 90)
     seller = _value(data, "seller", 115, required=True)
+    seller_address = _value(data, "seller_address", 145)
+    customer_contact = _value(data, "customer_contact", 90)
+    delivery_deadline = _value(data, "delivery_deadline", 10)
     kind = data.get("payment_kind", "advance")
     if kind not in ("advance", "earnest"):
         raise ValueError("Select előleg or foglaló")
-    if kind == "earnest" and data.get("earnest_agreed") is not True:
-        raise ValueError("Foglaló requires a separate clear agreement confirmed by the parties")
+    channel = data.get("sale_channel", "store")
+    if channel not in ("store", "distance"):
+        raise ValueError("Select the correct contract channel")
+    if kind == "earnest":
+        if data.get("earnest_agreed") is not True:
+            raise ValueError("Explicit mutual agreement to foglaló must be confirmed")
+        if not seller_address or not reference:
+            raise ValueError("Foglaló needs seller address and order reference")
+        if not delivery_deadline:
+            raise ValueError("Foglaló needs a clear latest promised availability date")
+    if delivery_deadline:
+        try:
+            deadline = date.fromisoformat(delivery_deadline)
+        except ValueError as exc:
+            raise ValueError("Delivery deadline must be YYYY-MM-DD") from exc
+        if deadline < date.today():
+            raise ValueError("Promised deadline cannot be in the past")
+    copies_raw = data.get("copies", 2 if kind == "earnest" else 1)
+    if isinstance(copies_raw, bool) or str(copies_raw) not in ("1", "2"):
+        raise ValueError("Only one or two agreement copies supported")
+    copies = int(copies_raw)
+
     def amount(field):
         value = data.get(field)
         if isinstance(value, bool) or not isinstance(value, (str, int)):
             raise ValueError(f"{field}: positive HUF amount required")
         try:
             number = int(value)
-        except (ValueError, TypeError, OverflowError):
-            raise ValueError(f"{field}: invalid HUF amount")
+        except (ValueError, TypeError, OverflowError) as exc:
+            raise ValueError(f"{field}: invalid HUF amount") from exc
         if number <= 0 or number > 1_000_000_000 or str(number) != str(value).strip():
             raise ValueError(f"{field}: whole HUF amount required")
         return number
+
     total = amount("total_huf")
     paid = amount("paid_huf")
     if paid > total:
         raise ValueError("Prepayment cannot exceed total price")
     return {
-        "seller": seller, "customer": client, "part": part,
-        "reference": reference, "eta": eta, "payment_kind": kind,
+        "seller": seller, "seller_address": seller_address,
+        "customer": client, "customer_contact": customer_contact, "part": part,
+        "reference": reference, "eta": eta, "delivery_deadline": delivery_deadline,
+        "payment_kind": kind, "sale_channel": channel, "copies": copies,
         "total_huf": total, "paid_huf": paid, "balance_huf": total - paid,
     }
+
+
+def render_parts_agreement(r, info):
+    """Render one or two complete signing copies on a single print job.
+
+    Only the final normal ESC/POS cut is automatic. The dashed midline
+    separates two *independently signable* duplicate contracts.
+    """
+    stamp = datetime.now().strftime("%Y-%m-%d %H:%M")
+    money = lambda amount: f"{amount:,}".replace(",", " ") + " Ft"
+    earnest = info["payment_kind"] == "earnest"
+
+    def section(label, body, size=18):
+        r.text(label, 19, True, gap=1)
+        r.text(body, size, gap=2).space(3)
+
+    for index in range(info["copies"]):
+        if index:
+            r.space(16)
+            r.text("VÁGÁS ITT  - - - - - - - - - -", 18, False, "center")
+            r.space(18)
+        r.text("ALKATRÉSZ-MEGRENDELÉS", 25, True, "center")
+        r.text("ÉS FOGLALÓMEGÁLLAPODÁS" if earnest else "ÉS ELŐLEG-ELISMERVÉNY",
+               24, True, "center").rule()
+        r.text("VEVŐ PÉLDÁNYA" if index == 0 else "CELLNET PÉLDÁNYA",
+               17, True, "center")
+        r.text("Kelt: " + stamp, 17)
+        r.text("Eladó: " + info["seller"], 18)
+        if info["seller_address"]:
+            r.text("Eladó címe: " + info["seller_address"], 17)
+        r.text("Vevő: " + info["customer"], 18)
+        if info["customer_contact"]:
+            r.text("Értesítési elérhetőség: " + info["customer_contact"], 17)
+        if info["reference"]:
+            r.text("Megrendelés: " + info["reference"], 18, True)
+        r.text("Alkatrész: " + info["part"], 19, True)
+        r.text("Teljes bruttó ár: " + money(info["total_huf"]), 19, True)
+        r.text(("Átadott FOGLALÓ: " if earnest else "Átadott ELŐLEG: ") +
+               money(info["paid_huf"]), 20, True)
+        r.text("Hátralék: " + money(info["balance_huf"]), 19)
+        if info["eta"]:
+            r.text("Becsült beérkezés: " + info["eta"], 17)
+        if info["delivery_deadline"]:
+            r.text("VÁLLALT ÁTADHATÓSÁG: " + info["delivery_deadline"], 18, True)
+        r.rule()
+        section("1. MEGRENDELÉS", (
+            "A vevő a fenti alkatrészt a megjelölt bruttó áron "
+            "megrendeli. Az eladó vállalja a szerződésszerű teljesítést."
+        ))
+        section("2. SZÁLLÍTÁS, KÉSÉS", (
+            "A becsült beérkezés nem vállalt határidő. "
+            "Futár- vagy beszállítói késésről az eladó tájékoztat. "
+            "Ez önmagában nem szünteti meg a szerződést. "
+            "Eladói késedelem esetén a vevőt a Ptk. 6:220. § és "
+            "a 45/2014. Korm. rendelet 8/B. § szerinti jogok illetik meg; "
+            "indokolt esetben póthatáridő és elállás is lehetséges."
+        ), 17)
+        if earnest:
+            section("3. FOGLALÓ - Ptk. 6:185. §", (
+                "A felek kifejezetten FOGLALÓNAK minősítik a fent "
+                "átadott összeget a szerződéses kötelezettség "
+                "megerősítésére. Teljesítéskor a vételárba beszámít. "
+                "A vevő felelőssége miatti meghiúsuláskor elvész; "
+                "eladói felelősségnél kétszeresen jár vissza; "
+                "ha egyik vagy mindkét fél felelős, visszajár. "
+                "A túlzott foglalót a bíróság mérsékelheti."
+            ), 17)
+            section("4. ÁTVÉTEL, VISSZALÉPÉS", (
+                "A vevő vállalja az elkészült rendelés átvételét "
+                "és a fennmaradó vételár megfizetését. "
+                "Ha jogszerű ok nélkül visszalép vagy megfelelő "
+                "felhívás után sem teljesít, és emiatt a szerződés "
+                "a vevő felelősségéből meghiúsul, a foglaló "
+                "a törvény szerint elveszhet."
+            ), 17)
+        else:
+            section("3. ELŐLEG", (
+                "Az átadott pénz ELŐLEG, nem foglaló; a vételárba "
+                "beszámít, és nem automatikusan vissza nem térítendő. "
+                "Elszámolás és igények a törvény alapján."
+            ), 17)
+        section("5. FOGYASZTÓI JOGOK", (
+            "Az egyezség nem korlátozza a szavatosságot, az eladói "
+            "késedelem jogkövetkezményeit vagy a törvényes elállást. "
+            + (
+                "A szerződés távollévők között / üzlethelyiségen kívül "
+                "jött létre: a 14 napos indokolás nélküli elállási jog "
+                "szabályai és kivételei külön vizsgálandók. "
+                "A beszállítótól rendelés önmagában nem kivétel."
+                if info["sale_channel"] == "distance" else
+                "A szerződés személyesen, az üzletben jött létre: "
+                "hibátlan árunál nincs általános 14 napos, "
+                "indokolás nélküli bolti elállási jog."
+            )
+        ), 17)
+        r.text("A felek az adatokat és a FOGLALÓ rendeltetését "
+               "elolvasták, megértették és elfogadják."
+               if earnest else
+               "A felek az adatokat és az előleg jogcímét elfogadják.",
+               17, True)
+        r.space(14)
+        r.text("Vevő aláírása: ___________________", 18)
+        r.space(14)
+        r.text("Eladó aláírása: _________________", 18)
+        r.space(7)
+        r.text("Nem számla/nyugta; adóügyi bizonylat külön. "
+               "A hőpapír kifakulhat: őrizzenek tartós másolatot.", 15)
+    return ("Két aláírható foglalómegállapodás-példány" if earnest and
+            info["copies"] == 2 else "Alkatrész-megrendelés és befizetés")
+
 
 
 def draw_utility(kind, data, r, lang):
@@ -429,42 +572,7 @@ def draw_utility(kind, data, r, lang):
         return tx("Pocket technical reference", "Zsebben hordható műszaki puska")
 
     if kind == "deposit":
-        info = parts_order_terms(data)
-        fmt = lambda amount: f"{amount:,}".replace(",", " ") + " Ft"
-        r.text("CELLNET // ALKATRÉSZRENDELÉS", 23, True, "center").rule(True)
-        r.text("MEGRENDELÉS / BEFIZETÉS", 28, True, "center").rule()
-        r.text("NEM SZÁMLA VAGY NYUGTA", 20, True, "center")
-        r.space(7)
-        r.text("Dátum: " + datetime.now().strftime("%Y-%m-%d %H:%M"), 19)
-        r.text("Eladó: " + info["seller"], 19)
-        r.text("Megrendelő: " + info["customer"], 20)
-        if info["reference"]:
-            r.text("Rendelési azonosító: " + info["reference"], 19)
-        r.text("Alkatrész: " + info["part"], 24, True).rule()
-        r.text("TELJES VÉTELÁR: " + fmt(info["total_huf"]), 22, True)
-        r.text("ÁTVETT ÖSSZEG: " + fmt(info["paid_huf"]), 24, True)
-        r.text("FENNMARADÓ: " + fmt(info["balance_huf"]), 22, True)
-        if info["eta"]:
-            r.text("Várható beérkezés: " + info["eta"], 19)
-        r.rule(True)
-        if info["payment_kind"] == "earnest":
-            r.text("FOGLALÓ - Ptk. 6:185. §", 25, True)
-            r.text("A felek külön megállapodásában a fenti összeg FOGLALÓ: a kötelezettségvállalás megerősítésére szolgál. Teljesítéskor beszámít a vételárba.", 20)
-            r.text("Ha a teljesítés a vevő felelősségi körében hiúsul meg, az adott foglaló elvész; ha az eladó felelős, a kapott foglaló kétszeresét kell visszaadni. Ha egyik fél sem felelős, vagy mindkét fél felelős, a foglaló visszajár.", 20)
-            r.text("Túlzott foglalót a bíróság mérsékelhet. A törvényes elállási és fogyasztói jogok nem zárhatók ki.", 19)
-            r.text("FIGYELEM: A foglaló jellegét külön, egyértelmű szerződésben rögzítsék. Önmagában e hőpapíros lap nem helyettesíti azt.", 19, True)
-        else:
-            r.text("ELŐLEG - NEM FOGLALÓ", 25, True)
-            r.text("A befizetett összeg vételárba beszámító ELŐLEG. Nem válik automatikusan vissza nem térítendővé. Megszűnés, elállás vagy meghiúsulás esetén az elszámolást a szerződés és az alkalmazandó jog szabályozza.", 20)
-            r.text("Esetleges bizonyított kár vagy jogszerű követelés rendezése külön történik.", 19)
-        r.rule()
-        r.text("Megrendelő aláírása:", 19).space(30)
-        r.text("................................", 21).space(7)
-        r.text("Átvevő / eladó aláírása:", 19).space(30)
-        r.text("................................", 21)
-        r.rule()
-        r.text("A befizetésről a jogszabály szerinti adóügyi bizonylatot külön kell kiállítani. A hőpapír idővel kifakulhat; a szerződést és a bizonylatot tartós formában őrizze meg.", 17)
-        return "Alkatrész megrendelés / " + ("foglaló" if info["payment_kind"] == "earnest" else "előleg") + " - nem adóügyi bizonylat"
+        return render_parts_agreement(r, parts_order_terms(data))
 
     if kind == "legal":
         if lang not in ("en", "hu"):
