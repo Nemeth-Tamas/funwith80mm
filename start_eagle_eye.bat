@@ -1,5 +1,3 @@
 @echo off
-setlocal
-set "THERMAL_CHAOS_CAMERA=1"
-call "%~dp0start.bat"
-endlocal
+rem Camera mode is opt-in only through this separate launcher.
+call "%~dp0start.bat" --eagle-eye
