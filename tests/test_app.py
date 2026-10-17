@@ -5,6 +5,7 @@ import unittest
 from PIL import Image
 from app import app, build, escpos_bytes, make_sudoku, Receipt, is_eligible_printer
 from content import BANK
+from extra_library import EXTRA, KEYS
 
 
 class ThermalChaosTests(unittest.TestCase):
@@ -22,6 +23,34 @@ class ThermalChaosTests(unittest.TestCase):
                     self.assertEqual(result.status_code, 200, result.get_json())
                     self.assertTrue(result.get_json()["image"].startswith("data:image/png;base64,"))
                     self.assertTrue(result.get_json()["id"])
+
+    def test_five_new_modes_per_language(self):
+        for lang in ("en", "hu"):
+            for kind in KEYS:
+                with self.subTest(lang=lang, kind=kind):
+                    self.assertGreaterEqual(len(EXTRA[lang][kind]), 30)
+                    response = self.client.post("/api/generate", json={
+                        "kind": kind, "data": {"lang": lang, "pad_mm": 20}
+                    })
+                    self.assertEqual(response.status_code, 200, response.get_json())
+                    encoded = response.get_json()["image"].split(",", 1)[1]
+                    image = Image.open(io.BytesIO(base64.b64decode(encoded)))
+                    self.assertEqual(image.width, 576)
+                    self.assertTrue(all(p == 255 for p in image.crop((0, image.height-100, 576, image.height)).getdata()))
+
+    def test_every_new_authored_entry_renders(self):
+        from unittest.mock import patch
+        import app as app_module
+        for lang in ("en", "hu"):
+            for kind in KEYS:
+                for idx, entry in enumerate(EXTRA[lang][kind]):
+                    with self.subTest(lang=lang, kind=kind, index=idx):
+                        with patch.dict(app_module.EXTRA[lang], {kind: [entry]}):
+                            im, answer, description = build(kind, {"lang": lang})
+                        self.assertEqual(im.width, 576)
+                        self.assertLess(im.height, 5900)
+                        self.assertGreater(im.height, 200)
+                        self.assertTrue(escpos_bytes(im).endswith(b"\x1dV\x00"))
 
     def test_photo_in_both_languages(self):
         pic = Image.new("RGB", (70, 70), (121, 92, 44))
