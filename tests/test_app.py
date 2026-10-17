@@ -118,6 +118,74 @@ class ThermalChaosTests(unittest.TestCase):
         })
         self.assertEqual(response.status_code, 400)
 
+
+    def test_most_wanted_is_bilingual_and_printer_ready(self):
+        from wanted_posters import WANTED
+        sample = Image.new("RGB", (640, 900), (167, 139, 106))
+        output = io.BytesIO()
+        sample.save(output, "PNG")
+        uri = "data:image/png;base64," + base64.b64encode(output.getvalue()).decode("ascii")
+        for lang in ("en", "hu"):
+            with self.subTest(lang=lang):
+                response = self.client.post("/api/generate", json={
+                    "kind": "photo",
+                    "data": {
+                        "lang": lang,
+                        "effect": "mostwanted",
+                        "wanted_alias": "Captain Cable Goblin" if lang == "en" else "Kábelkobold",
+                        "image": uri,
+                        "pad_mm": 20,
+                    },
+                })
+                self.assertEqual(response.status_code, 200, response.get_json())
+                body = response.get_json()
+                self.assertIn("poster" if lang == "en" else "poszter",
+                              body["description"].lower())
+                im = Image.open(io.BytesIO(base64.b64decode(body["image"].split(",", 1)[1])))
+                self.assertEqual(im.width, 576)
+                self.assertLess(im.height, 5900)
+                self.assertGreater(im.height, 1200)
+                self.assertEqual(set(im.crop((0, im.height-100, 576, im.height)).getdata()), {255})
+                self.assertEqual(set(im.getdata()), {0, 255})
+                self.assertTrue(escpos_bytes(im, cut=True).endswith(b"\x1dV\x00"))
+
+    def test_most_wanted_preserves_regular_photo_effects(self):
+        from app import make_photo
+        sample = Image.new("RGB", (200, 120), (140, 190, 220))
+        output = io.BytesIO()
+        sample.save(output, "PNG")
+        uri = "data:image/png;base64," + base64.b64encode(output.getvalue()).decode("ascii")
+        for effect in ("dither", "threshold", "newsprint", "negative"):
+            with self.subTest(effect=effect):
+                photo = make_photo(uri, effect)
+                self.assertLessEqual(photo.width, 528)
+                self.assertLessEqual(photo.height, 1150)
+        poster = make_photo(uri, "mostwanted")
+        self.assertEqual(poster.size, (448, 548))
+
+    def test_most_wanted_custom_alias_and_random_fallback(self):
+        from wanted_posters import WANTED, wanted_profile
+        for lang in ("en", "hu"):
+            custom = wanted_profile(lang, "  CAPTAIN\\nCABLE  ", random.Random(4))
+            self.assertNotIn("\n", custom["alias"])
+            self.assertIn("CAPTAIN", custom["alias"])
+            self.assertEqual(len(custom["case"]), 12)
+            fallback = wanted_profile(lang, "   ", random.Random(4))
+            self.assertIn(fallback["alias"], WANTED[lang]["aliases"])
+            self.assertTrue(fallback["charges"])
+
+    def test_most_wanted_rejects_missing_image(self):
+        response = self.client.post("/api/generate", json={
+            "kind": "photo", "data": {"lang": "en", "effect": "mostwanted"}
+        })
+        self.assertEqual(response.status_code, 400)
+
+    def test_most_wanted_effect_visible_in_photo_ui(self):
+        html = self.client.get("/").get_data(as_text=True)
+        self.assertIn('["mostwanted",s.effects[4]]', html)
+        self.assertIn('KÖRÖZÉS poszter', html)
+        self.assertIn('wanted_alias', html)
+
     def test_psychological_horror_content_validation(self):
         loaded = load_psychological_horror()
         for lang in ("en", "hu"):
