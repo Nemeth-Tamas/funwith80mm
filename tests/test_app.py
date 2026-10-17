@@ -119,6 +119,42 @@ class ThermalChaosTests(unittest.TestCase):
         self.assertEqual(response.status_code, 400)
 
 
+    def test_wanted_poster_never_prints_entire_content_pools(self):
+        # Regression: "charges" and "seen" were also used as heading keys,
+        # so the poster dumped a repr of all the possible charges/locations.
+        from unittest.mock import patch
+        from wanted_posters import WANTED
+        real_text = Receipt.text
+        image = Image.new("RGB", (80, 120), (100, 130, 160))
+        stream = io.BytesIO()
+        image.save(stream, "PNG")
+        uri = "data:image/png;base64," + base64.b64encode(stream.getvalue()).decode("ascii")
+        for lang in ("en", "hu"):
+            with self.subTest(lang=lang):
+                observed = []
+
+                def capture(receipt, value, *args, **kwargs):
+                    observed.append(value)
+                    return real_text(receipt, value, *args, **kwargs)
+
+                with patch.object(Receipt, "text", capture):
+                    im, _, _ = build("photo", {
+                        "lang": lang, "effect": "mostwanted", "image": uri
+                    })
+                self.assertEqual(im.width, 576)
+                self.assertTrue(all(isinstance(value, str) for value in observed))
+                labels = WANTED[lang]["labels"]
+                self.assertEqual(set(labels), {"alias", "charges", "seen", "reward", "note"})
+                for name in ("alias", "charges", "seen", "reward", "note"):
+                    self.assertEqual(observed.count(labels[name]), 1)
+                self.assertEqual(sum(value in WANTED[lang]["charges"]
+                                     for value in observed), 1)
+                self.assertEqual(sum(value in WANTED[lang]["seen"]
+                                     for value in observed), 1)
+                self.assertFalse(any(str(WANTED[lang]["charges"]) == value
+                                     or str(WANTED[lang]["seen"]) == value
+                                     for value in observed))
+
     def test_most_wanted_is_bilingual_and_printer_ready(self):
         from wanted_posters import WANTED
         sample = Image.new("RGB", (640, 900), (167, 139, 106))
