@@ -147,11 +147,13 @@ class UtilityTests(unittest.TestCase):
         self.assertEqual(adv["balance_huf"], 18000)
         self.assertEqual(adv["payment_kind"], "advance")
         self.preview("deposit", {**base, "payment_kind": "advance"})
-        foglalo = parts_order_terms({**base, "payment_kind": "earnest",
-                                    "earnest_agreed": True})
+        agreed = {**base, "payment_kind": "earnest", "earnest_agreed": True,
+                  "seller_address": "9500 Celldömölk, Példa utca 1.",
+                  "reference": "TEST-1001", "delivery_deadline": "2099-12-31"}
+        foglalo = parts_order_terms(agreed)
         self.assertEqual(foglalo["payment_kind"], "earnest")
-        self.preview("deposit", {**base, "payment_kind": "earnest",
-                                  "earnest_agreed": True})
+        self.assertEqual(foglalo["copies"], 2)
+        self.preview("deposit", agreed)
         for bad in (
             {"payment_kind": "earnest"},
             {"payment_kind": "earnest", "earnest_agreed": "true"},
@@ -162,6 +164,99 @@ class UtilityTests(unittest.TestCase):
                 "kind": "deposit", "data": {**base, **bad}
             })
             self.assertEqual(response.status_code, 400, response.get_json())
+
+    def test_foglalo_two_identical_signed_contract_copies(self):
+        from app import Receipt
+        from unittest.mock import patch
+        agreed = {
+            "lang": "hu", "seller": "Cellnet Elektronikai és Informatikai Kft.",
+            "seller_address": "9500 Celldömölk, Mintautca 1.",
+            "customer": "Teszt Elek", "customer_contact": "+36 20 1234567",
+            "part": "Pótakkumulátor, pontos készüléktípus",
+            "reference": "REPAIR-123", "total_huf": "28990",
+            "paid_huf": "14000", "payment_kind": "earnest",
+            "earnest_agreed": True, "eta": "Körülbelül 5 munkanap",
+            "delivery_deadline": "2099-12-31", "sale_channel": "store",
+            "copies": "2", "pad_mm": 20,
+        }
+        values = []
+        original = Receipt.text
+
+        def capture(receipt, value, *args, **kwargs):
+            values.append(str(value))
+            return original(receipt, value, *args, **kwargs)
+
+        with patch.object(Receipt, "text", capture):
+            image = self.preview("deposit", agreed)
+        self.assertEqual(sum("ALKATRÉSZ-MEGRENDELÉS" in x for x in values), 2)
+        self.assertEqual(sum("FOGLALÓ - Ptk." in x for x in values), 2)
+        self.assertEqual(values.count("VEVŐ PÉLDÁNYA"), 1)
+        self.assertEqual(values.count("CELLNET PÉLDÁNYA"), 1)
+        self.assertEqual(sum("VÁGÁS ITT" in x for x in values), 1)
+        self.assertEqual(sum("Vevő aláírása:" in x for x in values), 2)
+        self.assertEqual(sum("Eladó aláírása:" in x for x in values), 2)
+        self.assertEqual(sum("VÁLLALT ÁTADHATÓSÁG:" in x for x in values), 2)
+        self.assertEqual(sum("Becsült beérkezés:" in x for x in values), 2)
+        self.assertEqual(sum("6:220." in x for x in values), 2)
+        self.assertEqual(sum("kétszeresen" in x for x in values), 2)
+        self.assertEqual(sum("póthatáridő" in x for x in values), 2)
+        self.assertLess(image.height, 5900)
+
+    def test_foglalo_requires_legal_terms_and_agreed_deadline(self):
+        valid = {
+            "seller": "Cellnet Kft.", "seller_address": "Üzlet címe",
+            "customer": "Próba Elek", "part": "Laptop akkumulátor",
+            "reference": "X-2000", "total_huf": "28000", "paid_huf": "8000",
+            "delivery_deadline": "2099-12-31",
+            "payment_kind": "earnest", "earnest_agreed": True,
+        }
+        for missing in ("seller_address", "reference", "delivery_deadline"):
+            with self.subTest(missing=missing):
+                result = self.client.post("/api/generate", json={
+                    "kind": "deposit", "data": {**valid, missing: ""}
+                })
+                self.assertEqual(result.status_code, 400)
+        for invalid in ("2020-01-01", "not-a-date", "2026-02-30"):
+            with self.subTest(date=invalid):
+                result = self.client.post("/api/generate", json={
+                    "kind": "deposit", "data": {**valid, "delivery_deadline": invalid}
+                })
+                self.assertEqual(result.status_code, 400)
+        for invalid in ("0", "3", True):
+            with self.subTest(copies=invalid):
+                result = self.client.post("/api/generate", json={
+                    "kind": "deposit", "data": {**valid, "copies": invalid}
+                })
+                self.assertEqual(result.status_code, 400)
+        result = self.client.post("/api/generate", json={
+            "kind": "deposit", "data": {**valid, "earnest_agreed": False}
+        })
+        self.assertEqual(result.status_code, 400)
+
+    def test_foglalo_distance_contract_discloses_withdrawal_rights(self):
+        from app import Receipt
+        from unittest.mock import patch
+        observed = []
+        original = Receipt.text
+
+        def capture(receipt, value, *args, **kwargs):
+            observed.append(str(value))
+            return original(receipt, value, *args, **kwargs)
+
+        with patch.object(Receipt, "text", capture):
+            self.preview("deposit", {
+                "seller": "Cellnet Kft.", "seller_address": "Cím",
+                "customer": "Test Person", "part": "Battery",
+                "reference": "DISTANCE-1", "total_huf": "25000",
+                "paid_huf": "9000", "payment_kind": "earnest",
+                "earnest_agreed": True, "delivery_deadline": "2099-11-30",
+                "sale_channel": "distance", "copies": 1,
+            })
+        body = " ".join(observed)
+        self.assertIn("14 napos", body)
+        self.assertIn("beszállítótól rendelés önmagában nem kivétel", body.lower())
+        self.assertIn("szavatosságot", body)
+        self.assertNotIn("vissza nem térítendő", body.lower())
 
     def test_no_auto_print_and_ui_accessible(self):
         for kind in ("qr", "checklist", "note", "cheatsheet", "legal", "deposit"):
