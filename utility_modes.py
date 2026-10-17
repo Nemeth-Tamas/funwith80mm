@@ -450,7 +450,7 @@ def draw_utility(kind, data, r, lang):
         if info["payment_kind"] == "earnest":
             r.text("FOGLALÓ - Ptk. 6:185. §", 25, True)
             r.text("A felek külön megállapodásában a fenti összeg FOGLALÓ: a kötelezettségvállalás megerősítésére szolgál. Teljesítéskor beszámít a vételárba.", 20)
-            r.text("Ha a teljesítés a vevő felelősségi körében hiúsul meg, az adott foglaló elvész; ha az eladó felelős, a kapott foglaló kétszeresét kell visszaadni. Ha egyik vagy mindkét fél felelős, a foglaló visszajár.", 20)
+            r.text("Ha a teljesítés a vevő felelősségi körében hiúsul meg, az adott foglaló elvész; ha az eladó felelős, a kapott foglaló kétszeresét kell visszaadni. Ha egyik fél sem felelős, vagy mindkét fél felelős, a foglaló visszajár.", 20)
             r.text("Túlzott foglalót a bíróság mérsékelhet. A törvényes elállási és fogyasztói jogok nem zárhatók ki.", 19)
             r.text("FIGYELEM: A foglaló jellegét külön, egyértelmű szerződésben rögzítsék. Önmagában e hőpapíros lap nem helyettesíti azt.", 19, True)
         else:
