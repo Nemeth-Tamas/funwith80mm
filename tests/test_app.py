@@ -6,6 +6,8 @@ from PIL import Image
 from app import app, build, escpos_bytes, make_sudoku, Receipt, is_eligible_printer
 from content import BANK
 from extra_library import EXTRA, KEYS
+from chaos_games import GAMES, BINGO_THEMES, FREE_SPACE, bingo_card
+import random
 
 
 class ThermalChaosTests(unittest.TestCase):
@@ -51,6 +53,69 @@ class ThermalChaosTests(unittest.TestCase):
                         self.assertLess(im.height, 5900)
                         self.assertGreater(im.height, 200)
                         self.assertTrue(escpos_bytes(im).endswith(b"\x1dV\x00"))
+
+    def test_paranormal_reports_and_bingo_api(self):
+        for lang in ("en", "hu"):
+            for kind in ("paranormal", "bingo"):
+                themes = BINGO_THEMES if kind == "bingo" else ("repair",)
+                for theme in themes:
+                    with self.subTest(lang=lang, kind=kind, theme=theme):
+                        response = self.client.post("/api/generate", json={
+                            "kind": kind, "data": {
+                                "lang": lang, "theme": theme, "pad_mm": 20
+                            }
+                        })
+                        self.assertEqual(response.status_code, 200, response.get_json())
+                        raw = base64.b64decode(response.get_json()["image"].split(",", 1)[1])
+                        im = Image.open(io.BytesIO(raw)).convert("L")
+                        self.assertEqual(im.width, 576)
+                        self.assertLess(im.height, 5900)
+                        self.assertEqual(set(im.crop((0, im.height-100, 576, im.height)).getdata()), {255})
+                        self.assertIn(b"\x1dv0", escpos_bytes(im))
+
+    def test_bingo_cards_are_real_five_by_five_grids(self):
+        for lang in ("en", "hu"):
+            for theme in BINGO_THEMES:
+                for seed in range(8):
+                    with self.subTest(lang=lang, theme=theme, seed=seed):
+                        card = bingo_card(lang, theme, random.Random(seed))
+                        self.assertEqual(len(card), 25)
+                        self.assertEqual(card[12], FREE_SPACE[lang])
+                        self.assertEqual(len(set(card)), 25)
+                        self.assertTrue(
+                            set(card[:12] + card[13:]).issubset(set(GAMES[lang]["bingo"][theme]))
+                        )
+
+    def test_render_every_paranormal_case(self):
+        from unittest.mock import patch
+        import app as app_module
+        for lang in ("en", "hu"):
+            self.assertGreaterEqual(len(GAMES[lang]["paranormal"]), 40)
+            for index, case in enumerate(GAMES[lang]["paranormal"]):
+                with self.subTest(lang=lang, case=index):
+                    with patch.dict(app_module.GAMES[lang], {"paranormal": [case]}):
+                        im, answer, description = build("paranormal", {"lang": lang})
+                    self.assertEqual(im.width, 576)
+                    self.assertLess(im.height, 5900)
+
+    def test_longest_bingo_labels_still_fit_receipt(self):
+        from app import Receipt
+        for lang in ("en", "hu"):
+            for theme in BINGO_THEMES:
+                with self.subTest(lang=lang, theme=theme):
+                    tiles = sorted(GAMES[lang]["bingo"][theme], key=len, reverse=True)[:24]
+                    tiles.insert(12, FREE_SPACE[lang])
+                    image = Receipt().bingo(tiles).footer(pad_mm=20)
+                    self.assertEqual(image.width, 576)
+                    self.assertLess(image.height, 5900)
+                    self.assertTrue(all(px == 255 for px in image.crop(
+                        (0, image.height-90, 576, image.height)).getdata()))
+
+    def test_invalid_bingo_theme_rejected(self):
+        response = self.client.post("/api/generate", json={
+            "kind": "bingo", "data": {"lang": "hu", "theme": "invalid"}
+        })
+        self.assertEqual(response.status_code, 400)
 
     def test_photo_in_both_languages(self):
         pic = Image.new("RGB", (70, 70), (121, 92, 44))
