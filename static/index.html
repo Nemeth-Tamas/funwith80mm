@@ -76,7 +76,8 @@ const MODES=[
  {id:"insult",emoji:"🔥"}, {id:"quest",emoji:"🎲"}, {id:"puzzle",emoji:"🧠"},
  {id:"photo",emoji:"📸"}, {id:"mystery",emoji:"📡"}, {id:"horror",emoji:"👁️"},
  {id:"certificate",emoji:"🏆"}, {id:"fpv",emoji:"🚁"}, {id:"fake",emoji:"🧾"},
- {id:"roulette",emoji:"💀"}
+ {id:"psyops",emoji:"🗂️"}, {id:"patch",emoji:"🪐"}, {id:"prophecy",emoji:"🔮"},
+ {id:"complaint",emoji:"⚖️"}, {id:"future",emoji:"📼"}, {id:"roulette",emoji:"💀"}
 ];
 const TXT={
  en:{
@@ -84,8 +85,8 @@ const TXT={
   pick:"Choose your chaos",preview:"The evidence",empty:"Select a button. Create a problem.",
   printer:"Windows receipt printer (USB or network)",refresh:"↻ Find printers",padding:"Bottom margin before cut",cut:"Auto-cut",
   gen:"↻ SUMMON CHAOS",print:"🖨 PRINT IT",hint:"Print through a Windows-installed USB or network receipt printer.",
-  name:["ROAST ME","CHAOS QUEST","BRAIN DAMAGE","THERMAL PHOTO","HAUNTED SIGNAL","PURE HORROR","FAKE CERTIFICATE","FPV MISSION","FAKE RECEIPT","CHAOS ROULETTE"],
-  desc:["Your self-esteem wasn't using those hit points.","Receive an unsolicited quest.","Pocket puzzles; solutions on demand.","Convert pictures into edible-looking pixels.","Disturbing transmissions from impossible devices.","Very short stories. Very wrong endings.","Award yourself an absurd qualification.","A fresh little flying challenge.","Buy something from a shop that shouldn't exist.","No choosing. Just pure unpredictable nonsense."],
+  name:["ROAST ME","CHAOS QUEST","BRAIN DAMAGE","THERMAL PHOTO","HAUNTED SIGNAL","PURE HORROR","FAKE CERTIFICATE","FPV MISSION","FAKE RECEIPT","PSYOPS","REALITY PATCH NOTES","PROPHECY","COSMIC COMPLAINTS","FUTURE TRANSMISSION","CHAOS ROULETTE"],
+  desc:["Your self-esteem wasn't using those hit points.","Receive an unsolicited quest.","Pocket puzzles; solutions on demand.","Convert pictures into edible-looking pixels.","Disturbing transmissions from impossible devices.","Very short stories. Very wrong endings.","Award yourself an absurd qualification.","A fresh little flying challenge.","Buy something from a shop that shouldn't exist.","A bureaucratic memo that knows too much.","Patch notes for a defective universe.","Uncomfortably specific, deeply unreliable predictions.","File an official grievance against existence.","Receive tomorrow's message several decades early.","No choosing. Just pure unpredictable nonsense."],
   choose:"Choose",levels:"Damage level",difficulty:"Difficulty",puzzle:"Puzzle type",
   nameInput:"Name on the certificate (optional)",nameHolder:"THE BEARER",craft:"Aircraft",
   photo:"Choose photo",effect:"Rendering effect",photoNote:"Maximum 6 MB. Tall pictures get scaled down.",
@@ -105,8 +106,8 @@ const TXT={
   pick:"Válaszd ki a káoszt",preview:"A bizonyíték",empty:"Nyomj egy gombot. Generálj egy problémát.",
   printer:"Windows blokknyomtató (USB vagy hálózat)",refresh:"↻ Nyomtatók keresése",padding:"Alsó ráhagyás vágás előtt",cut:"Automatikus vágás",
   gen:"↻ KÁOSZT IDE!",print:"🖨 NYOMTASD!",hint:"Nyomtatás Windowsban telepített USB-s vagy hálózati blokknyomtatóra.",
-  name:["ALÁZZ MEG!","KÁOSZKÜLDETÉS","AGYTORNA","HŐNYOMAT","KÍSÉRTETJEL","TISZTA HORROR","KAMU OKLEVÉL","FPV KÜLDETÉS","KAMU BLOKK","KÁOSZROULETT"],
-  desc:["A maradék önbecsülésedet is bedaráljuk.","Teljesen értelmetlen mellékküldetés.","Zsebméretű rejtvények külön megfejtéssel.","Csináljunk egy fotóból pixeles műalkotást.","Üzenetek olyan eszközökről, amik nem is léteznek.","Pár sor. Aztán nem fogsz jól aludni.","Kapj hivatalosan értéktelen címet.","Egy repülés, egy kihívás.","Vásárolj egy lehetetlen univerzumban.","Vakon belenyúlsz a káoszba. Bármi történhet."],
+  name:["ALÁZZ MEG!","KÁOSZKÜLDETÉS","AGYTORNA","HŐNYOMAT","KÍSÉRTETJEL","TISZTA HORROR","KAMU OKLEVÉL","FPV KÜLDETÉS","KAMU BLOKK","PSYOPS","VALÓSÁGFRISSÍTÉS","JÓSLAT","KOZMIKUS PANASZOK","ÜZENET A JÖVŐBŐL","KÁOSZROULETT"],
+  desc:["A maradék önbecsülésedet is bedaráljuk.","Teljesen értelmetlen mellékküldetés.","Zsebméretű rejtvények külön megfejtéssel.","Csináljunk egy fotóból pixeles műalkotást.","Üzenetek olyan eszközökről, amik nem is léteznek.","Pár sor. Aztán nem fogsz jól aludni.","Kapj hivatalosan értéktelen címet.","Egy repülés, egy kihívás.","Vásárolj egy lehetetlen univerzumban.","Hivatalos papír, ami túlságosan sokat tud rólad.","A hibás univerzum legfrissebb változásai.","Kellemetlenül konkrét, megbízhatatlan jóslatok.","Tegyél hivatalos panaszt a létezés ellen.","Évtizedekkel korábban kézbesített üzenet.","Vakon belenyúlsz a káoszba. Bármi történhet."],
   choose:"Válassz",levels:"Lelki sérülés mértéke",difficulty:"Nehézség",puzzle:"Rejtvény típusa",
   nameInput:"Név az oklevélre (opcionális)",nameHolder:"AZ OKLEVÉL TULAJDONOSA",craft:"Gép",
   photo:"Válassz képet",effect:"Képátalakítás",photoNote:"Legfeljebb 6 MB. A túl magas képet lekicsinyítjük.",
@@ -195,7 +196,7 @@ function fileData(file){
 }
 async function generate(kind=mode,payload=null){
  const selectedLang=$("lang").value;
- if(kind==="roulette")kind=["insult","quest","puzzle","mystery","horror","certificate","fpv","fake"][Math.floor(Math.random()*8)];
+ if(kind==="roulette")kind=["insult","quest","puzzle","mystery","horror","certificate","fpv","fake","psyops","patch","prophecy","complaint","future"][Math.floor(Math.random()*13)];
  $("generate").disabled=true;$("print").disabled=true;$("answer").style.display="none";tell(t().generating);
  try{
   const data=payload?{...payload}:{};
