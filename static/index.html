@@ -1,0 +1,175 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Thermal Chaos // 80mm edition</title>
+  <style>
+  :root{font:16px/1.5 system-ui,Segoe UI,sans-serif;color:#e9e9f4;background:#0b0c13}
+  *{box-sizing:border-box}body{margin:0}header,main{max-width:1120px;margin:auto;padding:20px}
+  header{display:flex;justify-content:space-between;align-items:center;gap:12px}
+  h1{margin:0;font-size:clamp(1.7rem,5vw,3rem);letter-spacing:-.06em}
+  header p{color:#abaac0;margin:0} .signal{background:#243b32;border-radius:20px;padding:8px 13px;font-size:.8rem;color:#adf2c4}
+  .layout{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(300px,.8fr);gap:22px}
+  .panel{background:#171926;border:1px solid #2a2b40;border-radius:18px;padding:22px}
+  .modes{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+  button,select,input{font:inherit}button{background:#242639;color:#e9e9f4;border:1px solid #44445d;border-radius:11px;padding:12px;cursor:pointer}
+  button:hover{border-color:#9e8aff}button.selected{background:#4c397f;border-color:#b7a0ff}
+  button.primary{background:#bb9cff;color:#141023;border:none;font-weight:800}button:disabled{opacity:.45;cursor:default}
+  label{display:block;color:#cccbe0;font-size:.9rem;margin:14px 0 6px}
+  input,select{display:block;width:100%;background:#10111c;border:1px solid #484861;color:#fff;border-radius:10px;padding:11px}
+  input[type=checkbox]{width:auto;display:inline}
+  #extra{padding-top:4px} .actions{display:flex;gap:8px;margin-top:18px;flex-wrap:wrap}.actions>*{flex:1}
+  .preview{display:grid;justify-content:center;align-items:start;background:#0e101b;border-radius:12px;min-height:160px;padding:14px}
+  .preview img{max-width:100%;width:288px;height:auto;image-rendering:auto;box-shadow:0 8px 35px #0009}
+  #status{min-height:24px;color:#cec4ec;font-size:.9rem;margin:15px 0 0}
+  .hint{font-size:.83rem;color:#a5a4b9}.check{display:flex;gap:10px;align-items:center;margin:8px 0}
+  .tag{color:#c2b2ff;font-weight:800;letter-spacing:.12em;font-size:.75rem}
+  @media(max-width:800px){.layout{grid-template-columns:1fr}header{align-items:start}.panel{padding:15px}}
+  </style>
+</head>
+<body>
+  <header>
+    <div><div class="tag">80MM OF COMPLETELY UNNECESSARY TECHNOLOGY</div><h1>THERMAL CHAOS <span aria-hidden="true">✳</span></h1><p>Waste paper responsibly. Or irresponsibly. Your call.</p></div>
+    <span class="signal">LOCAL USB EDITION</span>
+  </header>
+  <main class="layout">
+    <section class="panel">
+      <h2>Pick your terrible idea</h2>
+      <div class="modes" id="modes"></div>
+      <div id="extra"></div>
+      <label for="printer">Windows USB printer</label>
+      <select id="printer"><option value="">Finding USB printers...</option></select>
+      <button id="refresh" style="margin-top:8px">↻ Refresh printers</button>
+      <label class="check"><input type="checkbox" id="cut" checked> Auto-cut after printing</label>
+      <div class="actions">
+        <button id="generate">↻ Generate preview</button>
+        <button id="print" class="primary" disabled>🖨 PRINT THE NONSENSE</button>
+      </div>
+      <div class="actions"><button id="answer" style="display:none">Reveal / print puzzle answer</button></div>
+      <p id="status" role="status" aria-live="polite"></p>
+      <p class="hint">Nothing prints until you press PRINT. Only USB/DOT4 Windows printer ports are listed; Wi-Fi/network queues are excluded. Preview generation works without a printer. Accessible locally at 127.0.0.1 only.</p>
+    </section>
+    <section class="panel">
+      <h2>Your future regret</h2>
+      <div class="preview" id="preview"><p class="hint">Generate something first. No paper harmed yet.</p></div>
+      <p id="description" class="hint"></p>
+    </section>
+  </main>
+<script>
+const MODES=[
+  {id:"insult",name:"🔥 Roast me",help:"Emotional damage, printed."},
+  {id:"quest",name:"🎲 Chaos quest",help:"Unnecessary side missions."},
+  {id:"puzzle",name:"🧠 Puzzle",help:"Tiny games with separate answers."},
+  {id:"photo",name:"📸 Thermal photo",help:"Dither your memories."},
+  {id:"mystery",name:"👁 Haunted signal",help:"Fictional creepy transmissions."},
+  {id:"certificate",name:"🏆 Certificate",help:"Officially worthless honors."},
+  {id:"fpv",name:"🚁 FPV mission",help:"Safer flying skill challenges."},
+  {id:"fake",name:"🧾 Fake receipt",help:"Clearly fictional purchases."}
+];
+let mode="insult",current=null,answer=null;
+const $=id=>document.getElementById(id);
+function tell(msg){$("status").textContent=msg}
+function fields(){
+  const extra=$("extra");extra.replaceChildren();
+  const makeSelect=(id,label,opts)=>{
+    const lab=document.createElement("label");lab.htmlFor=id;lab.textContent=label;
+    const sel=document.createElement("select");sel.id=id;
+    opts.forEach(([val,txt])=>{const op=document.createElement("option");op.value=val;op.textContent=txt;sel.append(op)});
+    extra.append(lab,sel);
+  };
+  if(mode==="insult")makeSelect("level","How much emotional damage?",[["gentle","Gentle"],["mean","Mean"],["nuclear","Nuclear"],["existential","Existential crisis"]]);
+  if(mode==="quest")makeSelect("level","Side quest difficulty",[["easy","Easy"],["medium","Medium"],["hard","Hard"]]);
+  if(mode==="puzzle"){
+    makeSelect("type","Puzzle type",[["random","Surprise me"],["sudoku","Sudoku"],["math","Number sequence"],["cipher","Cipher"],["riddle","Riddle"]]);
+    makeSelect("level","Difficulty",[["easy","Easy"],["medium","Medium"],["hard","Hard"]]);
+  }
+  if(mode==="photo"){
+    const lab=document.createElement("label");lab.textContent="Choose an image";lab.htmlFor="imageFile";
+    const input=document.createElement("input");input.type="file";input.accept="image/*";input.id="imageFile";
+    extra.append(lab,input);
+    makeSelect("effect","Photo effect",[["dither","Classic thermal dither"],["threshold","Hard black & white"],["newsprint","Newspaper"],["negative","Inverted dither"]]);
+    const note=document.createElement("p");note.className="hint";note.textContent="Max 6 MB. Tall photos are scaled down to save paper.";extra.append(note);
+  }
+  if(mode==="certificate"){
+    const lab=document.createElement("label");lab.textContent="Recipient's name (optional)";lab.htmlFor="name";
+    const input=document.createElement("input");input.id="name";input.maxLength=56;input.placeholder="THE BEARER";
+    extra.append(lab,input);
+  }
+  if(mode==="fpv")makeSelect("craft","Aircraft",[["Meteor75 Pro II","Meteor75 Pro II"],["Air75 II","Air75 II"],["Avata 2","Avata 2"],["MM-001","MM-001"]]);
+}
+function renderModes(){
+ const parent=$("modes");parent.replaceChildren();
+ MODES.forEach(item=>{
+  const b=document.createElement("button");b.textContent=item.name;b.title=item.help;
+  b.className=mode===item.id?"selected":"";
+  b.onclick=()=>{mode=item.id;current=null;answer=null;$("print").disabled=true;$("answer").style.display="none";$("preview").textContent="Generate something first.";tell(item.help);fields();renderModes()};
+  parent.append(b);
+ });
+}
+async function loadPrinters(){
+ const select=$("printer"),previous=select.value;
+ select.replaceChildren();
+ try{
+   const res=await fetch("/api/printers");const data=await res.json();
+   if(!data.printers.length){select.add(new Option(data.windows?"No USB printer queues found":"Printer queues available on Windows only",""));return}
+   data.printers.forEach(p=>select.add(new Option(p.name+" ["+p.port+"]",p.name)));
+   if([...select.options].some(o=>o.value===previous))select.value=previous;
+ }catch(e){select.add(new Option("Cannot connect to app",""));tell(e.message)}
+}
+function fileData(file){
+ return new Promise((resolve,reject)=>{
+   const reader=new FileReader();
+   reader.onload=()=>resolve(reader.result);reader.onerror=()=>reject(new Error("Could not read image"));
+   reader.readAsDataURL(file);
+ });
+}
+async function generate(kind=mode,payload=null){
+ $("generate").disabled=true;$("print").disabled=true;$("answer").style.display="none";
+ tell("Creating nonsense...");
+ try{
+   const data=payload||{};
+   if(!payload){
+     for(const id of ["level","type","effect","name","craft"]){if($(id))data[id]=$(id).value}
+     if(kind==="photo"){
+       const file=$("imageFile").files[0];
+       if(!file)throw new Error("Choose a photo first");
+       if(file.size>6000000)throw new Error("Photo must be under 6 MB");
+       data.image=await fileData(file);
+     }
+   }
+   const res=await fetch("/api/generate",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({kind,data})});
+   const result=await res.json();
+   if(!res.ok)throw new Error(result.error||"Could not generate");
+   current=result.id;answer=result.answer;
+   const img=new Image();img.alt="Exact monochrome receipt preview";img.src=result.image;
+   $("preview").replaceChildren(img);$("description").textContent=result.description;
+   $("print").disabled=false;
+   if(answer!==null){$("answer").style.display="block";$("answer").textContent="Reveal / print puzzle answer"}
+   tell("Ready. Print when you dare.");
+ }catch(e){current=null;tell("Oops: "+e.message)}
+ finally{$("generate").disabled=false}
+}
+$("generate").onclick=()=>generate();
+$("refresh").onclick=loadPrinters;
+$("answer").onclick=async()=>{
+ if(!answer)return;
+ const solution=answer;
+ const button=$("answer");
+ button.textContent="Answer: "+solution+" — click to make a solution slip";
+ button.onclick=()=>{button.onclick=()=>{};generate("answer",{answer:solution})};
+};
+$("print").onclick=async()=>{
+ if(!current)return;
+ if(!$("printer").value){tell("Install/select your Birch USB printer in Windows first.");return}
+ $("print").disabled=true;tell("Sending to USB printer...");
+ try{
+   const res=await fetch("/api/print",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({id:current,printer:$("printer").value,cut:$("cut").checked})});
+   const out=await res.json();if(!res.ok)throw new Error(out.error||"Print failed");
+   tell(out.message+"! (Physical print not independently verified.)");
+ }catch(e){tell("Printer error: "+e.message)}
+ finally{$("print").disabled=false}
+};
+renderModes();fields();loadPrinters();
+</script>
+</body></html>
