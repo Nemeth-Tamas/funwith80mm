@@ -15,6 +15,7 @@ from content import BANK
 from extra_library import EXTRA
 from chaos_games import GAMES, BINGO_THEMES, bingo_card
 from psych_horror import PSYCHOLOGICAL_HORROR
+from wanted_posters import WANTED, wanted_profile
 
 ROOT = Path(__file__).resolve().parent
 app = Flask(__name__, static_folder=str(ROOT / "static"))
@@ -251,11 +252,18 @@ def make_photo(src, effect):
     try:
         im = Image.open(io.BytesIO(raw))
         im = ImageOps.exif_transpose(im)
-        im.thumbnail((WIDTH-48, 1150), Image.Resampling.LANCZOS)
+        if effect == "mostwanted":
+            # A genuine fixed-size mugshot crop: crop before dithering so
+            # portrait detail stays legible on 203 DPI thermal paper.
+            im = ImageOps.fit(im.convert("RGB"), (448, 548),
+                              method=Image.Resampling.LANCZOS,
+                              centering=(0.5, 0.42))
+        else:
+            im.thumbnail((WIDTH-48, 1150), Image.Resampling.LANCZOS)
         if im.width < 1 or im.height < 1:
             raise ValueError("Empty image")
         im = ImageOps.autocontrast(im.convert("L"))
-    except (UnidentifiedImageError, OSError) as e:
+    except (UnidentifiedImageError, OSError, ValueError) as e:
         raise ValueError("That image format is not supported") from e
     if effect == "negative":
         im = ImageOps.invert(im)
@@ -266,6 +274,47 @@ def make_photo(src, effect):
     else:
         im = im.convert("1", dither=Image.Dither.FLOYDSTEINBERG).convert("L")
     return im
+
+def print_wanted_poster(receipt, photo, lang, alias=None):
+    """Compose an obviously fictional, newspaper-like 80 mm wanted poster."""
+    copy = WANTED[lang]
+    record = wanted_profile(lang, alias)
+
+    receipt.text(copy["agency"], 19, True, "center", gap=3)
+    receipt.rule(True).space(3)
+
+    # Proper dramatic black title bar with light reversed text.
+    label = copy["heading"]
+    title_font = font(41, True)
+    bar_top = receipt.y
+    bar_height = 69
+    receipt.d.rectangle((receipt.margin, bar_top, receipt.right,
+                         bar_top + bar_height), fill=0)
+    title_width = receipt.d.textlength(label, font=title_font)
+    receipt.d.text((int((WIDTH-title_width)/2), bar_top+10), label,
+                   fill=255, font=title_font)
+    receipt.y += bar_height + 13
+
+    receipt.text(copy["file"], 18, True, "center", gap=2)
+    receipt.text("CASE " + record["case"], 23, True, "center").space(10)
+
+    # Frame + image intentionally use the same cached, previewed bitmap.
+    x = (WIDTH-photo.width)//2
+    y = receipt.y
+    receipt.d.rectangle((x-7, y-7, x+photo.width+7, y+photo.height+7),
+                        fill=255, outline=0, width=4)
+    receipt.photo(photo)
+    receipt.text(copy["photo"], 17, False, "center", gap=3)
+
+    for field in ("alias", "charges", "seen", "reward", "note"):
+        receipt.space(7)
+        receipt.text(copy[field], 18, True, gap=1)
+        receipt.text(record[field], 25 if field != "note" else 21,
+                     field in ("alias", "charges"), gap=2)
+    receipt.space(12).rule(True)
+    receipt.text(copy["footer"], 17, True, "center", gap=3)
+    return receipt
+
 
 def build(kind, data):
     if not isinstance(data, dict):
@@ -337,11 +386,18 @@ def build(kind, data):
         r.space(20).text(tx("ANSWER IN WEB APP", "MEGOLDÁS A WEBOLDALON"), 19, False, "center")
         meta = tx("Puzzles without instant spoilers", "Rejtvény azonnali spoiler nélkül")
     elif kind == "photo":
-        r.heading(tx("Badly remembered memories", "Pixeles emlékek osztálya"),
-                  tx("THERMAL PHOTO", "HŐNYOMAT"))
-        r.photo(make_photo(data.get("image"), str(data.get("effect", "dither"))))
-        r.text(tx("YOUR MEMORIES NOW HAVE ONLY TWO COLORS", "MOSTANTÓL KÉT SZÍNBŐL ÁLL AZ ÉLETED"), 17, False, "center")
-        meta = tx("Gloriously grainy instant photo", "Dicsőségesen szemcsés fénykép")
+        effect = str(data.get("effect", "dither"))
+        if effect == "mostwanted":
+            photo = make_photo(data.get("image"), "mostwanted")
+            print_wanted_poster(r, photo, lang, data.get("wanted_alias"))
+            meta = tx("Parody most-wanted mugshot poster",
+                      "Paródia körözési poszter fekete-fehér fotóval")
+        else:
+            r.heading(tx("Badly remembered memories", "Pixeles emlékek osztálya"),
+                      tx("THERMAL PHOTO", "HŐNYOMAT"))
+            r.photo(make_photo(data.get("image"), effect))
+            r.text(tx("YOUR MEMORIES NOW HAVE ONLY TWO COLORS", "MOSTANTÓL KÉT SZÍNBŐL ÁLL AZ ÉLETED"), 17, False, "center")
+            meta = tx("Gloriously grainy instant photo", "Dicsőségesen szemcsés fénykép")
     elif kind == "mystery":
         r.heading(tx("Unexplained technical incident", "Megmagyarázhatatlan incidens"),
                   tx("UNKNOWN SIGNAL", "ISMERETLEN JEL"))
