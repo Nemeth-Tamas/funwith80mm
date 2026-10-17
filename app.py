@@ -14,6 +14,7 @@ from PIL import Image, ImageDraw, ImageFont, ImageOps, UnidentifiedImageError
 from content import BANK
 from extra_library import EXTRA
 from chaos_games import GAMES, BINGO_THEMES, bingo_card
+from psych_horror import PSYCHOLOGICAL_HORROR
 
 ROOT = Path(__file__).resolve().parent
 app = Flask(__name__, static_folder=str(ROOT / "static"))
@@ -357,6 +358,16 @@ def build(kind, data):
         r.space(14).text(choice(bank["horror"]), 33, True)
         r.space(10)
         meta = tx("A very short nightmare", "Nagyon rövid rémálom")
+    elif kind == "psychhorror":
+        # Psychological horror uses a quiet heading and no jaunty footer.
+        # A short receipt feels more like an unsolicited discovery.
+        r.text(tx("THE PART YOU DON'T REMEMBER", "AMIRE NEM EMLÉKSZEL"),
+               20, True, "center").rule(True)
+        r.space(14)
+        r.text(choice(PSYCHOLOGICAL_HORROR[lang]), 31, True)
+        r.space(12)
+        meta = tx("Psychological horror: memories, identity, and impossible details",
+                  "Pszichológiai horror: emlékek, identitás és lehetetlen részletek")
     elif kind in ("psyops", "patch", "prophecy", "complaint", "future"):
         body = choice(EXTRA[lang][kind])
         if kind == "psyops":
@@ -493,7 +504,7 @@ def build(kind, data):
         pad_mm = int(data.get("pad_mm", 20))
     except (TypeError, ValueError):
         pad_mm = 20
-    footer_text = "" if kind in ("horror", "psyops", "future") else tx("THERMAL CHAOS // NO REFUNDS", "THERMAL CHAOS // NINCS VISSZATÉRÍTÉS")
+    footer_text = "" if kind in ("horror", "psychhorror", "psyops", "future") else tx("THERMAL CHAOS // NO REFUNDS", "THERMAL CHAOS // NINCS VISSZATÉRÍTÉS")
     return r.footer(footer_text, pad_mm), answer, meta
 
 def is_eligible_printer(name, port, driver=""):
