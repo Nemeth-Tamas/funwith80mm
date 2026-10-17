@@ -1,6 +1,6 @@
 # Thermal Chaos — Birch USB Edition
 
-A one-button, local-only 80 mm thermal printer playground for Windows. Eight modules: **roasts, random side quests, tiny puzzles (Sudoku / cipher / number patterns / riddles), thermal photo booth, fictional horror transmissions, silly certificates, FPV challenges, and obviously fake receipts.** No accounts, APIs, databases or internet connection required after the initial dependency install. No adventure game or AI chat.
+A one-button, local-only 80 mm thermal printer playground for Windows. Ten buttons: **roasts, random side quests, tiny puzzles (Sudoku / cipher / number patterns / riddles), thermal photo booth, haunted transmissions, micro-horror stories, silly certificates, FPV challenges, fictional receipts, and Chaos Roulette** (randomizes the others). English and **Magyar** UI plus bilingual printed content. Choose **bottom paper margin** (12/20/30 mm) before the cutter. No accounts, APIs, databases or internet connection required after the initial dependency install. No adventure game or AI chat.
 
 ## Quick start on Windows
 
@@ -8,7 +8,7 @@ A one-button, local-only 80 mm thermal printer playground for Windows. Eight mod
 2. Install Python 3.11+ with the Python Launcher (or add Python to PATH).
 3. Clone/download this repository, double-click **`start.bat`**.
 4. Open **http://127.0.0.1:8765** if it does not open automatically.
-5. Pick an activity, generate a preview, select your USB printer, and **PRINT**.
+5. Choose **English/Magyar**, pick a mode or Chaos Roulette, generate a preview, select your USB printer, and **PRINT**. The bottom padding selector defaults to 20 mm.
 
 The launcher installs Flask, Pillow, and pywin32 in an isolated virtual environment on first use.
 
