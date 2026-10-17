@@ -1,4 +1,4 @@
-"""Thermal Chaos — tiny, offline-friendly Windows USB receipt-printer playground."""
+"""Thermal Chaos — local Windows receipt-printer playground (USB or network)."""
 import base64
 import io
 import os
@@ -50,7 +50,7 @@ class Receipt:
 
     def text(self, value, size=26, bold=False, align="left", gap=5, mono=False):
         value = str(value)
-        f = font(size, bold, mono)
+        f = font(size + 1, bold, mono)
         maxw = self.right - self.margin
         for paragraph in value.split("\n"):
             words = paragraph.split()
@@ -81,7 +81,8 @@ class Receipt:
                     x = max(self.margin, (WIDTH - w) / 2)
                 elif align == "right":
                     x = self.right - w
-                self.d.text((int(x), self.y), line, fill=0, font=f)
+                self.d.text((int(x), self.y), line, fill=0, font=f,
+                            stroke_width=1, stroke_fill=0)
                 self.y += self.height(f) + gap
         return self
 
@@ -103,9 +104,11 @@ class Receipt:
 
     def pair(self, left, right):
         f = font(25, False, True)
-        self.d.text((self.margin, self.y), str(left)[:21], font=f, fill=0)
+        self.d.text((self.margin, self.y), str(left)[:21], font=f, fill=0,
+                    stroke_width=1, stroke_fill=0)
         rw = self.d.textlength(str(right), font=f)
-        self.d.text((self.right-rw, self.y), str(right), font=f, fill=0)
+        self.d.text((self.right-rw, self.y), str(right), font=f, fill=0,
+                    stroke_width=1, stroke_fill=0)
         self.y += 39
         return self
 
@@ -152,7 +155,7 @@ class Receipt:
         self.y += int(max(12, min(36, pad_mm)) * 8)
         if self.y > 5900:
             raise ValueError("Receipt is too tall")
-        return self.im.crop((0, 0, WIDTH, self.y)).point(lambda p: 0 if p < 155 else 255)
+        return self.im.crop((0, 0, WIDTH, self.y)).point(lambda p: 0 if p < 180 else 255)
 
 def choice(seq):
     return random.choice(seq)
@@ -344,7 +347,26 @@ def build(kind, data):
     footer_text = "" if kind == "horror" else tx("THERMAL CHAOS // NO REFUNDS", "THERMAL CHAOS // NINCS VISSZATÉRÍTÉS")
     return r.footer(footer_text, pad_mm), answer, meta
 
-def usb_printers():
+def is_eligible_printer(name, port, driver=""):
+    """Only show plausible physical queues; exclude obvious PDF/file/fax targets."""
+    name, port, driver = str(name).lower(), str(port).lower(), str(driver).lower()
+    bad_names = ("microsoft print to pdf", "microsoft xps document writer",
+                 "onenote", "adobe pdf", "pdf24", "cutepdf", "foxit pdf",
+                 "pdfcreator", "bullzip pdf", "fax")
+    bad_ports = ("file:", "portprompt:", "nul:", "shrfax:", "xpsport:")
+    if not name.strip() or not port.strip():
+        return False
+    if any(term in name or term in driver for term in bad_names):
+        return False
+    if any(port.startswith(part) for part in bad_ports):
+        return False
+    # Windows physical queues can use USB*, DOT4*, IP_*, WSD-*,
+    # host/IP-named ports, Ne00: connections or \\server\printer.
+    return True
+
+
+def windows_printers():
+    """List Windows-installed local and shared queues, including network devices."""
     if os.name != "nt":
         return []
     try:
@@ -358,16 +380,20 @@ def usb_printers():
                 handle = win32print.OpenPrinter(name)
                 info = win32print.GetPrinter(handle, 2)
                 port = str(info.get("pPortName") or "")
-                # Never select a Wi-Fi or network queue. Normal Windows USB
-                # printers are USB001/USB002; some drivers use DOT4.
-                if port.upper().startswith(("USB", "DOT4")):
-                    result.append({"name": name, "port": port})
+                driver = str(info.get("pDriverName") or "")
+                if is_eligible_printer(name, port, driver):
+                    usb = port.upper().startswith(("USB", "DOT4"))
+                    kind = "USB" if usb else "Network / Windows"
+                    result.append({"name": name, "port": port, "type": kind})
             except Exception:
                 pass
             finally:
                 if handle is not None:
                     win32print.ClosePrinter(handle)
-        return sorted(result, key=lambda e: (not any(k in e["name"].lower() for k in ("birch","cp-q","pos","receipt")), e["name"].lower()))
+        return sorted(result, key=lambda e: (
+            not any(k in e["name"].lower() for k in ("birch","cp-q","pos","receipt")),
+            0 if e["type"] == "USB" else 1, e["name"].lower()
+        ))
     except ImportError:
         return []
 
@@ -388,11 +414,11 @@ def escpos_bytes(im, cut=True):
         result += b"\x1dV\x00"  # Full cut; hardware can ignore if unsupported.
     return bytes(result)
 
-def send_usb(printer_name, img, cut):
+def send_to_windows_printer(printer_name, img, cut):
     import win32print
-    allowed = {p["name"] for p in usb_printers()}
+    allowed = {p["name"] for p in windows_printers()}
     if printer_name not in allowed:
-        raise ValueError("Select a locally connected Windows USB printer")
+        raise ValueError("Select a Windows-installed receipt printer (USB or network)")
     h = win32print.OpenPrinter(printer_name)
     try:
         job = win32print.StartDocPrinter(h, 1, ("Thermal Chaos", None, "RAW"))
@@ -415,7 +441,7 @@ def index():
 
 @app.get("/api/printers")
 def printers():
-    return jsonify({"printers": usb_printers(), "windows": os.name=="nt"})
+    return jsonify({"printers": windows_printers(), "windows": os.name=="nt"})
 
 @app.post("/api/generate")
 def generate():
@@ -446,12 +472,12 @@ def do_print():
         return jsonify({"error":"Preview expired. Generate a new one."}), 400
     try:
         im = Image.open(io.BytesIO(item[1]))
-        send_usb(str(body.get("printer","")), im, bool(body.get("cut", True)))
-        return jsonify({"ok":True, "message":"Sent to Windows USB print queue"})
+        send_to_windows_printer(str(body.get("printer","")), im, bool(body.get("cut", True)))
+        return jsonify({"ok":True, "message":"Sent to selected Windows printer queue"})
     except Exception as e:
         return jsonify({"error":str(e)}), 500
 
 if __name__ == "__main__":
     print("\nTHERMAL CHAOS - open http://127.0.0.1:8765")
-    print("Windows USB printer queues only. Press Ctrl+C to stop.\n")
+    print("Windows-installed USB or network receipt printers. Press Ctrl+C to stop.\n")
     app.run(host="127.0.0.1",port=8765,debug=False,threaded=True)
