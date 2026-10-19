@@ -18,7 +18,6 @@ from psych_horror import PSYCHOLOGICAL_HORROR
 from wanted_posters import WANTED, wanted_profile
 from utility_modes import UTILITY_KINDS, draw_utility
 from camera_workflow import CameraWorkflow
-from eagle_ptz_proxy import bp as eagle_ptz_blueprint
 
 ROOT = Path(__file__).resolve().parent
 app = Flask(__name__, static_folder=str(ROOT / "static"))
@@ -724,7 +723,6 @@ camera_workflow = CameraWorkflow(
     lambda printer, image, cut: send_to_windows_printer(printer, image, cut),
 )
 app.register_blueprint(camera_workflow.blueprint)
-app.register_blueprint(eagle_ptz_blueprint)
 
 @app.get("/eagle-eye")
 def eagle_eye():
